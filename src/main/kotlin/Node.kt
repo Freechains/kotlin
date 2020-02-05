@@ -29,15 +29,15 @@ fun String.fromHashToNode (): Node {
 }
 
 fun Node.saveJsonToFS (chain: Chain) {
-    val directory = File("data/" + chain.toID())
+    val directory = File("data/" + chain.toPath())
     if (!directory.exists()) {
         directory.mkdirs()
     }
-    File("data/" + chain.toID() + "/" + this.hash + ".node").writeText(this.toJson())
+    File("data/" + chain.toPath() + "/" + this.hash + ".node").writeText(this.toJson())
 }
 
 fun String.fromHashLoadFromFS (chain: Chain): Node {
-    return File("data/" + chain.toID() + "/" + this + ".node").readText().fromHashToNode()
+    return File("data/" + chain.toPath() + "/" + this + ".node").readText().fromHashToNode()
 }
 
 fun Node.toHash (): String {
@@ -59,7 +59,7 @@ fun hash2zeros (hash: String): Int {
     return zeros
 }
 
-fun Node.setNonceHashWithZeros (zeros: Int) {
+fun Node.setNonceHashWithZeros (zeros: Byte) {
     while (true) {
         val hash = this.toHash()
         //println(hash)
@@ -77,6 +77,7 @@ fun Node.toByteArray (): ByteArray {
     bytes.setLongAt(off, this.time)
     off += 8
     bytes.setLongAt(off, this.nonce)
+    off += 8
     for (v in this.payload) {
         bytes.set(off, v.toByte())
         off += 1

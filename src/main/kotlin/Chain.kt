@@ -5,13 +5,27 @@ import kotlinx.serialization.UnstableDefault
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 import java.io.File
+import java.time.Instant
+import java.time.Instant.now
 
 @Serializable
 data class Chain (
     val name  : String,
     val zeros : Byte
 ) {
-    val heads : Array<String>? = null
+    val hash  : String        = this.toHash()
+    var heads : Array<String> = arrayOf(this.hash)
+}
+
+fun Chain.publish (payload: String) {
+    this.publish(payload, Instant.now().toEpochMilli())
+}
+fun Chain.publish (payload: String, time: Long) {
+    val node = Node(time, 0, payload, this.heads!!)
+    node.setNonceHashWithZeros(this.zeros)
+    node.saveJsonToFS(this)
+    this.heads = arrayOf(node.hash!!)
+    this.saveJsonToFS()
 }
 
 fun Chain.toHash (): String {
@@ -30,7 +44,11 @@ fun Chain.toByteArray (): ByteArray {
     return bytes
 }
 
-fun Chain.toID (): String {
+fun Chain.toPair (): Pair<String,Byte> {
+    return Pair(this.name, this.zeros)
+}
+
+fun Chain.toPath (): String {
     return this.name + "/" + this.zeros
 }
 
@@ -47,13 +65,18 @@ fun String.fromJsonToChain (): Chain {
 }
 
 fun Chain.saveJsonToFS () {
-    val directory = File("data/" + this.toID())
+    val directory = File("data/" + this.toPath())
     if (!directory.exists()) {
         directory.mkdirs()
     }
-    File("data/" + this.toID() + ".chain").writeText(this.toJson())
+    File("data/" + this.toPath() + ".chain").writeText(this.toJson())
 }
 
-fun String.fromIDLoadFromFS (): Chain {
-    return File("data/" + this + ".chain").readText().fromJsonToChain()
+fun Pair<String,Byte>.loadFromFS (): Chain {
+    val chain = Chain(this.first,this.second)
+    val file = File("data/" + chain.toPath() + ".chain")
+    if (!file.exists()) {
+        chain.saveJsonToFS()
+    }
+    return file.readText().fromJsonToChain()
 }
