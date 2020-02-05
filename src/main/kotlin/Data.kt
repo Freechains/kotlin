@@ -24,7 +24,10 @@ data class Node (
 )
 
 fun Node.toJson (): String {
-    return Json(JsonConfiguration.Stable).stringify(Node.serializer(), this)
+    @UnstableDefault
+    val json = Json(JsonConfiguration(prettyPrint=true))
+    return json.stringify(Node.serializer(), this)
+
 }
 
 fun Node.saveToFS () {
