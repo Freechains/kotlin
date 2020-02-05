@@ -8,7 +8,8 @@ class Tests {
     @Test
     @DisplayName("Chain")
     fun Chain () {
-        val chain1 = Chain("/uerj", 0, emptyArray())
+        val chain1 = Chain("/uerj", 0)
+        println(chain1.toHash())
         chain1.saveJsonToFS()
 
         val chain2 = chain1.toID().fromIDLoadFromFS()
@@ -18,14 +19,14 @@ class Tests {
     @Test
     @DisplayName("Node")
     fun Node () {
-        val chain = Chain("/uerj",0, emptyArray())
+        val chain = Chain("/uerj",0)
 
-        val node = Node(0,0,"", emptyArray(), "")
+        val node = Node(0,0,"", emptyArray())
         node.setNonceHashWithZeros(5)
-        println(node.hash)
+        println(node.hash!!)
         node.saveJsonToFS(chain)
 
-        val node2 = node.hash.fromHashLoadFromFS(chain)
+        val node2 = node.hash!!.fromHashLoadFromFS(chain)
         assertThat(node.hashCode()).isEqualTo(node2.hashCode())
     }
 }

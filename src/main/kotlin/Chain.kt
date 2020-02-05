@@ -9,9 +9,26 @@ import java.io.File
 @Serializable
 data class Chain (
     val name  : String,
-    val zeros : Int,
-    val heads : Array<String>
-)
+    val zeros : Byte
+) {
+    val heads : Array<String>? = null
+}
+
+fun Chain.toHash (): String {
+    return this.toByteArray().toHash()
+}
+
+fun Chain.toByteArray (): ByteArray {
+    val bytes = ByteArray(this.name.length + 1)
+    var off = 0
+    for (v in this.name) {
+        bytes.set(off, v.toByte())
+        off += 1
+    }
+    bytes.set(off, this.zeros)
+    off += 1
+    return bytes
+}
 
 fun Chain.toID (): String {
     return this.name + "/" + this.zeros

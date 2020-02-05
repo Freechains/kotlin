@@ -11,9 +11,10 @@ data class Node (
     val time    : Long,             // TODO: ULong
     var nonce   : Long,             // TODO: ULong
     val payload : String,
-    val backs   : Array<String>,
-    var hash    : String
-)
+    val backs   : Array<String>
+) {
+    var hash: String? = null
+}
 
 fun Node.toJson (): String {
     @UnstableDefault
