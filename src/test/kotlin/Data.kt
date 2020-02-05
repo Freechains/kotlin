@@ -19,5 +19,9 @@ class Tests {
         println(node.hash)
 
         node.saveToFS()
+
+        val node2 = node.hash.loadFromFS()
+
+        assertThat(node.hashCode()).isEqualTo(node2.hashCode())
     }
 }

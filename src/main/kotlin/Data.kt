@@ -27,11 +27,20 @@ fun Node.toJson (): String {
     @UnstableDefault
     val json = Json(JsonConfiguration(prettyPrint=true))
     return json.stringify(Node.serializer(), this)
+}
 
+fun String.toNode (): Node {
+    @UnstableDefault
+    val json = Json(JsonConfiguration(prettyPrint=true))
+    return json.parse(Node.serializer(), this)
 }
 
 fun Node.saveToFS () {
     File("data/" + this.hash + ".fc").writeText(this.toJson())
+}
+
+fun String.loadFromFS (): Node {
+    return File("data/" + this + ".fc").readText().toNode()
 }
 
 fun Node.toHash (): String {
