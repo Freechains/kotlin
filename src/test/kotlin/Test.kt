@@ -1,6 +1,12 @@
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
+import java.net.Socket
+
+import kotlin.concurrent.thread
+
+import kotlinx.serialization.protobuf.ProtoBuf
+
 import freechains.*
 
 class Tests {
@@ -32,5 +38,22 @@ class Tests {
         val chain = Pair("/ceu",10.toByte()).loadFromFS()
         chain.publish("aaa", 0)
         chain.publish("bbb", 1)
+    }
+
+    @Test
+    fun protobuf () {
+        val bytes = ProtoBuf.dump(Header.serializer(), Header('F'.toByte(), 'C'.toByte(), 0x1000))
+        println("SIZE_PROTOBUF_HEADER: ${bytes.size}")
+    }
+
+    @Test
+    fun net () {
+        thread { server() }
+        Thread.sleep(100)
+        val client = Socket("127.0.0.1", 8330)
+        val header = Header('F'.toByte(), 'C'.toByte(), 0x1000)
+        val bytes = ProtoBuf.dump(Header.serializer(), header)
+        client.outputStream.write(bytes)
+        client.close()
     }
 }

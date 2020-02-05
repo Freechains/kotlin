@@ -22,7 +22,7 @@ fun Node.toJson (): String {
     return json.stringify(Node.serializer(), this)
 }
 
-fun String.fromHashToNode (): Node {
+fun String.fromJsonToNode (): Node {
     @UnstableDefault
     val json = Json(JsonConfiguration(prettyPrint=true))
     return json.parse(Node.serializer(), this)
@@ -37,7 +37,7 @@ fun Node.saveJsonToFS (chain: Chain) {
 }
 
 fun String.fromHashLoadFromFS (chain: Chain): Node {
-    return File("data/" + chain.toPath() + "/" + this + ".node").readText().fromHashToNode()
+    return File("data/" + chain.toPath() + "/" + this + ".node").readText().fromJsonToNode()
 }
 
 fun Node.toHash (): String {
