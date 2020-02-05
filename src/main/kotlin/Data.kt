@@ -1,5 +1,7 @@
 package data
 
+import java.io.File
+
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 
@@ -21,14 +23,13 @@ data class Node (
     var hash    : String
 )
 
-/*
-fun Node.toFile () {
-    val json = Json(JsonConfiguration.Stable)
-    //println(json.stringify(Chain.serializer(), Chain("oi",0)))
-
-    File(this.hash + ".fc").writeText(fileContent)
+fun Node.toJson (): String {
+    return Json(JsonConfiguration.Stable).stringify(Node.serializer(), this)
 }
-*/
+
+fun Node.saveToFS () {
+    File("data/" + this.hash + ".fc").writeText(this.toJson())
+}
 
 fun Node.toHash (): String {
     return this.toByteArray().toHash()

@@ -12,13 +12,12 @@ class Tests {
     @Test
     @DisplayName("Teste 1")
     fun Test1 () {
-        //val json = Json(JsonConfiguration.Stable)
-        //println(json.stringify(Chain.serializer(), Chain("oi",0)))
         assertThat(Chain("oi",0)).isEqualTo(Chain("oi",0))
+
         val node = Node(0,0,"", emptyArray(), "")
         node.setNonceHashWithZeros(5)
-        //println(node.toString())
-        //println(node.toHash())
         println(node.hash)
+
+        node.saveToFS()
     }
 }
