@@ -1,5 +1,8 @@
 package data
 
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonConfiguration
+
 import java.security.MessageDigest
 import kotlinx.serialization.*
 
@@ -14,8 +17,18 @@ data class Node (
     val time    : Long,             // TODO: ULong
     var nonce   : Long,             // TODO: ULong
     val payload : String,
-    val backs   : Array<String>
+    val backs   : Array<String>,
+    var hash    : String
 )
+
+/*
+fun Node.toFile () {
+    val json = Json(JsonConfiguration.Stable)
+    //println(json.stringify(Chain.serializer(), Chain("oi",0)))
+
+    File(this.hash + ".fc").writeText(fileContent)
+}
+*/
 
 fun Node.toHash (): String {
     return this.toByteArray().toHash()
@@ -36,14 +49,15 @@ fun hash2zeros (hash: String): Int {
     return zeros
 }
 
-fun Node.setNonceToHashWithZeros (zeros: Int): String {
+fun Node.setNonceHashWithZeros (zeros: Int) {
     while (true) {
         val hash = this.toHash()
         //println(hash)
         if (hash2zeros(hash) >= zeros) {
-            return hash
+            this.hash = hash
+            return
         }
-        this.nonce++;
+        this.nonce++
     }
 }
 
