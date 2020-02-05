@@ -1,18 +1,10 @@
-package data
+package freechains
 
 import java.io.File
-
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
-
 import java.security.MessageDigest
 import kotlinx.serialization.*
-
-@Serializable
-data class Chain (
-    val name  : String,
-    val zeros : Int
-)
 
 @Serializable
 data class Node (
@@ -29,18 +21,22 @@ fun Node.toJson (): String {
     return json.stringify(Node.serializer(), this)
 }
 
-fun String.toNode (): Node {
+fun String.fromHashToNode (): Node {
     @UnstableDefault
     val json = Json(JsonConfiguration(prettyPrint=true))
     return json.parse(Node.serializer(), this)
 }
 
-fun Node.saveToFS () {
-    File("data/" + this.hash + ".fc").writeText(this.toJson())
+fun Node.saveJsonToFS (chain: Chain) {
+    val directory = File("data/" + chain.toID())
+    if (!directory.exists()) {
+        directory.mkdirs()
+    }
+    File("data/" + chain.toID() + "/" + this.hash + ".node").writeText(this.toJson())
 }
 
-fun String.loadFromFS (): Node {
-    return File("data/" + this + ".fc").readText().toNode()
+fun String.fromHashLoadFromFS (chain: Chain): Node {
+    return File("data/" + chain.toID() + "/" + this + ".node").readText().fromHashToNode()
 }
 
 fun Node.toHash (): String {
