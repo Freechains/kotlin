@@ -79,17 +79,47 @@ class Handler (host: Host, client: Socket) {
         val chain = Chain_load(host.path, chain_.name,chain_.zeros)
         println(chain)
 
+        // receive all heads
         while (true) {
             val n = reader.readByte()
             val hh = reader.readNBytes(n.toInt()).toProtoNodeHH()
             println(hh.toNodeHH())
+
+            // do I have this head?
             if (chain.containsNode(hh.toNodeHH())) {
-                writer.writeByte(1)
+                writer.writeByte(1)     // yes, send me next or stop
             } else {
-                writer.writeByte(0)
+                writer.writeByte(0)     // no, send me it complete
+
                 val n = reader.readInt()
-                //val node = reader.readNBytes(n.toInt()).protobufToNode()
-                println(n)
+                val node = reader.readNBytes(n).protobufToNode()
+                println(node)
+                //node.nonce += 1
+                node.recheck()
+                chain.saveNode(node)
+
+                // check backs from received node
+                /*
+                for (hh in node.backs) {
+                    if (!chain.containsNode(hh)) {
+                        writer.writeByte(1)
+
+                        // send request for this back
+                        val bytes = ProtoBuf.dump(Proto_Node_HH.serializer(), hh.toProtoHH())
+                        assert(bytes.size <= Byte.MAX_VALUE)
+                        writer.writeByte(bytes.size)
+                        writer.write(bytes)
+                    }
+                }
+                 */
+                writer.writeByte(0)     // I have it all!
+            }
+
+            // has more heads?
+            val more = reader.readByte()
+            if (more.toInt() == 0) {
+                println("server disconnect")
+                break       // no: disconnect
             }
         }
     }

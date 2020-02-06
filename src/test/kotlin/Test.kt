@@ -138,6 +138,9 @@ class Tests {
             assert(ret == 1.toByte())
         }
 
+        // one more head
+        writer.writeByte(1)
+
         // HEIGHT_HASH
         if (true) {
             val bytes = ProtoBuf.dump(Proto_Node_HH.serializer(), node.toProtoHH())
@@ -150,18 +153,22 @@ class Tests {
 
             // NODE
             if (true) {
-                val byte = ProtoBuf.dump(Node.serializer(), node)
+                val bytes = ProtoBuf.dump(Node.serializer(), node)
                 assert(bytes.size <= Int.MAX_VALUE)
                 writer.writeInt(bytes.size)
+                writer.write(bytes)
                 println(node)
-                //writer.write(bytes)
             }
         }
+
+        // no more heads
+        writer.writeByte(0)
 
         // TODO: testar chains e nodes que nao existam
 
         Thread.sleep(100)
         client.close()
+        println("client terminated")
     }
 
     @Test

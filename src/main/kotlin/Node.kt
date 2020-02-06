@@ -50,6 +50,10 @@ fun Node.toProtoHH () : Proto_Node_HH {
     return Proto_Node_HH(this.height, this.hash!!.hashToByteArray())
 }
 
+fun Node_HH.toProtoHH () : Proto_Node_HH {
+    return Proto_Node_HH(this.height, this.hash.hashToByteArray())
+}
+
 // HH
 
 fun Node.toNodeHH () : Node_HH {
@@ -72,6 +76,10 @@ fun Node.setNonceHashWithZeros (zeros: Byte) {
         }
         this.nonce++
     }
+}
+
+fun Node.recheck () {
+    assert(this.hash!! == this.calcHash())
 }
 
 private fun Node.calcHash (): String {
