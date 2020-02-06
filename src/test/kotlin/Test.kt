@@ -26,7 +26,7 @@ class Tests {
         val x = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
         val y = byteArrayOf(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31)
         assert(x == y.toHexString())
-        assert(x.hexToByteArray().contentEquals(y))
+        assert(x.hashToByteArray().contentEquals(y))
     }
 
     @Test
@@ -41,7 +41,7 @@ class Tests {
     @Test
     fun b2_node () {
         val chain = Chain("local/", "/uerj",0)
-        val node = Node(0,0,"111", arrayOf(chain.toHeightHash()))
+        val node = Node(0,0,"111", arrayOf(chain.toHH()))
         node.setNonceHashWithZeros(0)
         //println("Node /uerj/0/111: ${node.hash!!}")
         chain.saveNode(node)
@@ -56,12 +56,12 @@ class Tests {
         val n2 = chain.publish("bbb", 1)
         val n3 = chain.publish("ccc", 2)
 
-        assert(chain.contains(chain.toHeightHash()))
+        assert(chain.contains(chain.toHH()))
         //println(n1.toHeightHash())
-        assert(chain.contains(n1.toHeightHash()))
-        assert(chain.contains(n2.toHeightHash()))
-        assert(chain.contains(n3.toHeightHash()))
-        assert(!chain.contains(Height_Hash(2, "........")))
+        assert(chain.contains(n1.toHH()))
+        assert(chain.contains(n2.toHH()))
+        assert(chain.contains(n3.toHH()))
+        assert(!chain.contains(Node_HH(2, "........")))
     }
 
     @Test
@@ -114,7 +114,7 @@ class Tests {
 
         // CHAIN
         if (true) {
-            val bytes = ProtoBuf.dump(Proto_1000_Chain.serializer(), chain.toProto())
+            val bytes = ProtoBuf.dump(Proto_1000_Chain.serializer(), chain.toProtoHH())
             assert(bytes.size <= Short.MAX_VALUE)
             writer.writeShort(bytes.size)
             writer.write(bytes)
@@ -122,7 +122,7 @@ class Tests {
 
         // HEIGHT_HASH
         if (true) {
-            val hh = Proto_1000_Height_Hash(10, "000d621b455be6f7a441dc662b7506a0ecd85ab835853c2528ab5f212d61b5c7".hexToByteArray())
+            val hh = Proto_1000_Height_Hash(10, "000d621b455be6f7a441dc662b7506a0ecd85ab835853c2528ab5f212d61b5c7".hashToByteArray())
             val bytes = ProtoBuf.dump(Proto_1000_Height_Hash.serializer(), hh)
             //println("${bytes.size} : $bytes")
             assert(bytes.size <= Byte.MAX_VALUE)
@@ -134,7 +134,7 @@ class Tests {
 
         // HEIGHT_HASH
         if (true) {
-            val bytes = ProtoBuf.dump(Proto_1000_Height_Hash.serializer(), node.toProto())
+            val bytes = ProtoBuf.dump(Proto_1000_Height_Hash.serializer(), node.toProtoHH())
             //println("${bytes.size} : $bytes")
             assert(bytes.size <= Byte.MAX_VALUE)
             writer.writeByte(bytes.size)
@@ -162,20 +162,20 @@ class Tests {
     fun e1_graph () {
         val chain = Chain("local/", "/graph",0)
 
-        val a1 = Node(0,0,"a1", arrayOf(chain.toHeightHash()))
-        val b1 = Node(0,0,"b1", arrayOf(chain.toHeightHash()))
+        val a1 = Node(0,0,"a1", arrayOf(chain.toHH()))
+        val b1 = Node(0,0,"b1", arrayOf(chain.toHH()))
         a1.setNonceHashWithZeros(0)
         b1.setNonceHashWithZeros(0)
         chain.saveNode(a1)
         chain.saveNode(b1)
-        chain.heads = arrayOf(a1.toHeightHash(), b1.toHeightHash())
+        chain.heads = arrayOf(a1.toHH(), b1.toHH())
 
         val ab2 = chain.publish("ab2", 0)
 
-        val b2 = Node(0,0,"b2", arrayOf(b1.toHeightHash()))
+        val b2 = Node(0,0,"b2", arrayOf(b1.toHH()))
         b2.setNonceHashWithZeros(0)
         chain.saveNode(b2)
-        chain.heads = arrayOf(chain.heads[0], b2.toHeightHash())
+        chain.heads = arrayOf(chain.heads[0], b2.toHH())
 
         val ret0 = chain.getBacksWithHeightOf(chain.heads[0],1)
         val ret1 = chain.getBacksWithHeightOf(chain.heads[1],1)

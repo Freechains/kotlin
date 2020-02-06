@@ -6,7 +6,6 @@ import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.ServerSocket
 import java.net.Socket
-import java.util.*
 import kotlin.concurrent.thread
 
 @Serializable
@@ -28,8 +27,8 @@ data class Proto_1000_Height_Hash (
     val hash   : ByteArray
 )
 
-fun Proto_1000_Height_Hash.toHeightHash () : Height_Hash {
-    return Height_Hash(this.height, this.hash.toHexString())
+fun Proto_1000_Height_Hash.toHH () : Node_HH {
+    return Node_HH(this.height, this.hash.toHexString())
 }
 
 fun ByteArray.toHeader (): Proto_Header {
@@ -83,8 +82,8 @@ class Handler (host: Host, client: Socket) {
         while (true) {
             val n = reader.readByte()
             val hh = reader.readNBytes(n.toInt()).to_1000_Height_Hash()
-            println(hh.toHeightHash())
-            if (chain.contains(hh.toHeightHash())) {
+            println(hh.toHH())
+            if (chain.contains(hh.toHH())) {
                 writer.writeByte(1)
             } else {
                 writer.writeByte(0)

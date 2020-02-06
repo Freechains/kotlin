@@ -16,7 +16,7 @@ data class Chain (
     val zeros : Byte
 ) {
     val hash  : String = this.toHash()
-    var heads : Array<Height_Hash> = arrayOf(this.toHeightHash())
+    var heads : Array<Node_HH> = arrayOf(this.toHH())
 }
 
 fun Chain.publish (payload: String) : Node {
@@ -27,13 +27,13 @@ fun Chain.publish (payload: String, time: Long) : Node {
     val node = Node(time, 0, payload, this.heads)
     node.setNonceHashWithZeros(this.zeros)
     this.saveNode(node)
-    this.heads = arrayOf(node.toHeightHash())
+    this.heads = arrayOf(node.toHH())
     this.save()
     return node
 }
 
-fun Chain.toHeightHash () : Height_Hash {
-    return Height_Hash(0, this.toHash())
+fun Chain.toHH () : Node_HH {
+    return Node_HH(0, this.toHash())
 }
 
 fun Chain.toHash () : String {
@@ -56,7 +56,7 @@ fun Chain.toPair () : Name_Zeros {
     return Name_Zeros(this.name, this.zeros)
 }
 
-fun Chain.toProto () : Proto_1000_Chain {
+fun Chain.toProtoHH () : Proto_1000_Chain {
     return Proto_1000_Chain(this.name, this.zeros)
 }
 
@@ -107,10 +107,10 @@ fun Chain.saveNode (node: Node) {
 }
 
 fun Chain.loadNodeFromHash (hash: String): Node {
-    return File(this.path + "/chains/" + this.toPath() + "/" + hash + ".node").readText().fromJsonToNode()
+    return File(this.path + "/chains/" + this.toPath() + "/" + hash + ".node").readText().jsonToNode()
 }
 
-fun Chain.contains (hh: Height_Hash) : Boolean {
+fun Chain.contains (hh: Node_HH) : Boolean {
     if (this.hash == hh.hash) {
         return true
     } else {
@@ -119,13 +119,13 @@ fun Chain.contains (hh: Height_Hash) : Boolean {
     }
 }
 
-fun Chain.getBacksWithHeightOf (hh: Height_Hash, height: Long) : ArrayList<String> {
+fun Chain.getBacksWithHeightOf (hh: Node_HH, height: Long) : ArrayList<String> {
     val ret: ArrayList<String> = ArrayList()
     this.getBacksWithHeightOf(ret, hh, height)
     return ret
 }
 
-fun Chain.getBacksWithHeightOf (ret: ArrayList<String>, hh: Height_Hash, height: Long) {
+fun Chain.getBacksWithHeightOf (ret: ArrayList<String>, hh: Node_HH, height: Long) {
     //println("$height vs $hh")
     assert(hh.height >= height) { "unexpected height"}
     if (hh.height == height) {
