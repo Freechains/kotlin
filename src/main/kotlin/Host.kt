@@ -7,6 +7,12 @@ import java.net.Socket
 import kotlin.concurrent.thread
 
 @Serializable
+data class Host (
+    val path : String,
+    val port : Int
+)
+
+@Serializable
 data class Proto_Header (
     val F    : Byte,
     var C    : Byte,
@@ -16,22 +22,22 @@ const val SIZE_PROTOBUF_HEADER = 7
 
 @Serializable
 data class Proto_1000_Chain (
-    val name: String,
-    val zeros: Byte
+    val name  : String,
+    val zeros : Byte
 )
 
 @Serializable
 data class Proto_1000_Height_Hash (
-    val height: Long,
-    val hash:   Array<Byte>
+    val height : Long,
+    val hash   : Array<Byte>
 )
 
 fun ByteArray.toHeader (): Proto_Header {
     return ProtoBuf.load(Proto_Header.serializer(), this)
 }
 
-fun server (port : Int = 8330) {
-    val server = ServerSocket(port)
+fun server (host : Host) {
+    val server = ServerSocket(host.port)
     println("Server is running on port ${server.localPort}")
 
     while (true) {

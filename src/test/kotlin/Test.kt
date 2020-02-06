@@ -70,9 +70,10 @@ class Tests {
 
     @Test
     fun d2_net () {
-        thread { server() }
+        val host = Host(".", 8330)
+        thread { server(host) }
         Thread.sleep(100)
-        val client = Socket("127.0.0.1", 8330)
+        val client = Socket("127.0.0.1", host.port)
         val header = Proto_Header('F'.toByte(), 'C'.toByte(), 0x1000)
         val bytes = ProtoBuf.dump(Proto_Header.serializer(), header)
         client.outputStream.write(bytes)
