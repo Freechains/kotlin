@@ -8,6 +8,8 @@ import java.io.File
 import java.time.Instant
 import java.time.Instant.now
 
+typealias Name_Zeros = Pair<String,Byte>
+
 @Serializable
 data class Chain (
     val name  : String,
@@ -44,8 +46,8 @@ fun Chain.toByteArray (): ByteArray {
     return bytes
 }
 
-fun Chain.toPair (): Pair<String,Byte> {
-    return Pair(this.name, this.zeros)
+fun Chain.toPair (): Name_Zeros {
+    return Name_Zeros(this.name, this.zeros)
 }
 
 fun Chain.toPath (): String {
@@ -72,7 +74,7 @@ fun Chain.saveJsonToFS () {
     File("data/" + this.toPath() + ".chain").writeText(this.toJson())
 }
 
-fun Pair<String,Byte>.loadFromFS (): Chain {
+fun Name_Zeros.loadFromFS (): Chain {
     val chain = Chain(this.first,this.second)
     val file = File("data/" + chain.toPath() + ".chain")
     if (!file.exists()) {

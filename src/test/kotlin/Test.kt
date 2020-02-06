@@ -35,7 +35,7 @@ class Tests {
 
     @Test
     fun publish () {
-        val chain = Pair("/ceu",10.toByte()).loadFromFS()
+        val chain = Name_Zeros("/ceu",10.toByte()).loadFromFS()
         chain.publish("aaa", 0)
         chain.publish("bbb", 1)
     }
