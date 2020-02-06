@@ -16,7 +16,8 @@ import java.io.DataOutputStream
 class Tests {
     @Test
     fun a_reset () {
-        assert( File("chains/").deleteRecursively() )
+        assert( File("local/").deleteRecursively() )
+        assert( File("remote/").deleteRecursively() )
     }
 
     @Test
@@ -29,7 +30,7 @@ class Tests {
 
     @Test
     fun b1_chain () {
-        val chain1 = Chain(".", "/uerj", 0)
+        val chain1 = Chain("local/", "/uerj", 0)
         //println("Chain /uerj/0: ${chain1.toHash()}")
         chain1.save()
         val chain2 = Chain_load(chain1.path, chain1.name, chain1.zeros)
@@ -38,7 +39,7 @@ class Tests {
 
     @Test
     fun b2_node () {
-        val chain = Chain(".", "/uerj",0)
+        val chain = Chain("local/", "/uerj",0)
         val node = Node(0,0,"111", arrayOf(chain.toHeightHash()))
         node.setNonceHashWithZeros(0)
         //println("Node /uerj/0/111: ${node.hash!!}")
@@ -49,7 +50,7 @@ class Tests {
 
     @Test
     fun c1_publish () {
-        val chain = Chain_create(".", "/ceu", 10)
+        val chain = Chain_create("local/", "/ceu", 10)
         val n1 = chain.publish("aaa", 0)
         val n2 = chain.publish("bbb", 1)
         val n3 = chain.publish("ccc", 2)
@@ -64,7 +65,7 @@ class Tests {
 
     @Test
     fun c2_getBacks () {
-        val chain = Chain_load(".", "/ceu", 10.toByte())
+        val chain = Chain_load("local/", "/ceu", 10.toByte())
         val ret = chain.getBacksWithHeightOf(chain.heads[0],2)
         //println(ret)
         assert(ret.toString() == "[000d621b455be6f7a441dc662b7506a0ecd85ab835853c2528ab5f212d61b5c7]")
@@ -84,9 +85,9 @@ class Tests {
 
     @Test
     fun d2_net () {
-        val host = Host(".", 8330)
+        val host = Host("local/", 8330)
         host.save()
-        val tmp = Host_load(".")
+        val tmp = Host_load("local/")
         assert(tmp == host)
 
         thread { server(host) }
@@ -114,7 +115,7 @@ class Tests {
 
         // HEIGHT_HASH
         if (true) {
-            val chain = Chain_load(".", "/ceu", 10)
+            val chain = Chain_load("local/", "/ceu", 10)
             val hh = Proto_1000_Height_Hash(10, "000d621b455be6f7a441dc662b7506a0ecd85ab835853c2528ab5f212d61b5c7".hexToByteArray())
             val bytes = ProtoBuf.dump(Proto_1000_Height_Hash.serializer(), hh)
             //println("${bytes.size} : $bytes")
@@ -131,7 +132,7 @@ class Tests {
 
     @Test
     fun e1_graph () {
-        val chain = Chain(".", "/graph",0)
+        val chain = Chain("local/", "/graph",0)
 
         val a1 = Node(0,0,"a1", arrayOf(chain.toHeightHash()))
         val b1 = Node(0,0,"b1", arrayOf(chain.toHeightHash()))
