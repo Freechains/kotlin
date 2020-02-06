@@ -5,15 +5,23 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 import java.security.MessageDigest
 import kotlinx.serialization.*
+import kotlin.math.max
+
+@Serializable
+data class Height_Hash (
+    val height : Long,
+    val hash   : String
+)
 
 @Serializable
 data class Node (
     val time    : Long,             // TODO: ULong
     var nonce   : Long,             // TODO: ULong
     val payload : String,
-    val backs   : Array<String>
+    val backs   : Array<Height_Hash>
 ) {
-    var hash: String? = null
+    var height  : Long = this.backs.fold(0.toLong(), { cur,hh -> max(cur,hh.height) }) + 1
+    var hash    : String? = null
 }
 
 fun Node.toJson (): String {
@@ -82,8 +90,8 @@ fun Node.toByteArray (): ByteArray {
         bytes.set(off, v.toByte())
         off += 1
     }
-    for (back in this.backs) {
-        for (v in back) {
+    for (hh in this.backs) {
+        for (v in hh.hash) {
             bytes.set(off, v.toByte())
             off += 1
         }

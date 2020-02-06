@@ -13,18 +13,18 @@ data class Chain (
     val name  : String,
     val zeros : Byte
 ) {
-    val hash  : String        = this.toHash()
-    var heads : Array<String> = arrayOf(this.hash)
+    val hash  : String = this.toHash()
+    var heads : Array<Height_Hash> = arrayOf(Height_Hash(0,this.hash))
 }
 
 fun Chain.publish (payload: String) {
     this.publish(payload, Instant.now().toEpochMilli())
 }
 fun Chain.publish (payload: String, time: Long) {
-    val node = Node(time, 0, payload, this.heads!!)
+    val node = Node(time, 0, payload, this.heads)
     node.setNonceHashWithZeros(this.zeros)
     node.saveJsonToFS(this)
-    this.heads = arrayOf(node.hash!!)
+    this.heads = arrayOf(Height_Hash(node.height,node.hash!!))
     this.saveJsonToFS()
 }
 

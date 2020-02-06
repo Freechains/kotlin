@@ -12,8 +12,16 @@ data class Header (
     var C    : Byte,
     val type : Short
 )
-
 const val SIZE_PROTOBUF_HEADER = 7
+
+/*
+@Serializable
+data class _1000 (
+    val name: String,
+    val zeros: Byte,
+    val heads: Array<String>
+)
+ */
 
 fun ByteArray.toHeader (): Header {
     return ProtoBuf.load(Header.serializer(), this)
@@ -36,6 +44,13 @@ fun handler (client: Socket) {
     val writer = client.getOutputStream()!!
 
     val header= reader.readNBytes(SIZE_PROTOBUF_HEADER).toHeader()
-    assert(header.F.toChar()=='F' && header.C.toChar()=='C') { "invalid header" }
+    assert(header.F.toChar()=='F' && header.C.toChar()=='C') { "invalid header signature" }
+
     println("Type: 0x${header.type.toString(16)}")
+    /*
+    when (header.type) {
+        0x1000 -> xxx
+        else   -> error("invalid header type")
+    }
+    */
 }

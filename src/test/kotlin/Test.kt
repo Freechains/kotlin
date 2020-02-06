@@ -24,7 +24,7 @@ class Tests {
     fun node () {
         val chain = Chain("/uerj",0)
 
-        val node = Node(0,0,"111", arrayOf(chain.toHash()))
+        val node = Node(0,0,"111", arrayOf(Height_Hash(0,chain.toHash())))
         node.setNonceHashWithZeros(0)
         println("Node /uerj/0/111: ${node.hash!!}")
         node.saveJsonToFS(chain)
