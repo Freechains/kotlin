@@ -95,8 +95,18 @@ fun ByteArray.toHash (): String {
     return MessageDigest.getInstance("SHA-256").digest(this).toHexString()
 }
 
+fun String.fromHashToByteArray () : ByteArray {
+    val ret = this.hexToByteArray()
+    assert(ret.size == 32) { "invalid hash" }
+    return ret
+}
+
+// https://gist.github.com/fabiomsr/845664a9c7e92bafb6fb0ca70d4e44fd
 fun ByteArray.toHexString () : String {
     return this.fold("", { str, it -> str + "%02x".format(it) })
+}
+fun String.hexToByteArray () : ByteArray {
+    return ByteArray(this.length / 2) { this.substring(it * 2, it * 2 + 2).toInt(16).toByte() }
 }
 
 fun ByteArray.setLongAt (index: Int, value: Long) {

@@ -24,7 +24,7 @@ data class Proto_1000_Chain (
 @Serializable
 data class Proto_1000_Height_Hash (
     val height : Long,
-    val hash   : Array<Byte>
+    val hash   : ByteArray
 )
 
 fun ByteArray.toHeader (): Proto_Header {
@@ -46,12 +46,13 @@ fun server (host : Host) {
     while (true) {
         val client = server.accept()
         println("Client connected: ${client.inetAddress.hostAddress}")
-        thread { Handler(client).handle() }
+        thread { Handler(host,client).handle() }
     }
 
 }
 
-class Handler (client: Socket) {
+class Handler (host: Host, client: Socket) {
+    val host = host
     val reader = DataInputStream(client.getInputStream()!!)
     //val writer = client.getOutputStream()!!
 
@@ -70,14 +71,16 @@ class Handler (client: Socket) {
 
     fun handle_1000 () {
         val n = reader.readShort()
-        val chain = reader.readNBytes(n.toInt()).to_1000_Chain()
+        val chain_ = reader.readNBytes(n.toInt()).to_1000_Chain()
+        val chain = Chain_load(host.path, chain_.name,chain_.zeros)
         println(chain)
 
         while (true) {
             val n = reader.readByte()
             println(n)
             val hh = reader.readNBytes(n.toInt()).to_1000_Height_Hash()
-            println(hh)
+            val node = chain.loadNodeFromHash(hh.hash.toHexString())
+            println(node)
         }
     }
 }

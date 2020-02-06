@@ -20,6 +20,14 @@ class Tests {
     }
 
     @Test
+    fun a1_hash () {
+        val x = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+        val y = byteArrayOf(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31)
+        assert(x == y.toHexString())
+        assert(x.hexToByteArray().contentEquals(y))
+    }
+
+    @Test
     fun b1_chain () {
         val chain1 = Chain(".", "/uerj", 0)
         //println("Chain /uerj/0: ${chain1.toHash()}")
@@ -76,9 +84,9 @@ class Tests {
 
     @Test
     fun d2_net () {
-        val host = Host("8330", 8330)
+        val host = Host(".", 8330)
         host.save()
-        val tmp = Host_load("8330")
+        val tmp = Host_load(".")
         assert(tmp == host)
 
         thread { server(host) }
@@ -97,7 +105,7 @@ class Tests {
 
         // CHAIN
         if (true) {
-            val chain = Proto_1000_Chain("/ceu", 0)
+            val chain = Proto_1000_Chain("/ceu", 10)
             val bytes = ProtoBuf.dump(Proto_1000_Chain.serializer(), chain)
             assert(bytes.size <= Short.MAX_VALUE)
             writer.writeShort(bytes.size)
@@ -106,13 +114,16 @@ class Tests {
 
         // HEIGHT_HASH
         if (true) {
-            val hh = Proto_1000_Height_Hash(10, arrayOf(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32))
+            val chain = Chain_load(".", "/ceu", 10)
+            val hh = Proto_1000_Height_Hash(10, "000d621b455be6f7a441dc662b7506a0ecd85ab835853c2528ab5f212d61b5c7".hexToByteArray())
             val bytes = ProtoBuf.dump(Proto_1000_Height_Hash.serializer(), hh)
             //println("${bytes.size} : $bytes")
             assert(bytes.size <= Byte.MAX_VALUE)
             writer.writeByte(bytes.size)
             writer.write(bytes)
         }
+
+        // TODO: testar chains e nodes que nao existam
 
         Thread.sleep(1000)
         client.close()

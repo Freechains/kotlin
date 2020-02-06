@@ -34,6 +34,9 @@ fun Host.save () {
 
 fun Host_load (path: String) : Host {
     val file = File(path + "/host")
+    if (!file.exists()) {
+        Host(System.getProperty("user.dir"), 8330).save()
+    }
     return file.readText().fromJsonToHost()
 }
 
