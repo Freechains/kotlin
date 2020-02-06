@@ -7,24 +7,27 @@ import java.net.Socket
 import kotlin.concurrent.thread
 
 @Serializable
-data class Header (
+data class Proto_Header (
     val F    : Byte,
     var C    : Byte,
     val type : Short
 )
 const val SIZE_PROTOBUF_HEADER = 7
 
-/*
 @Serializable
-data class _1000 (
+data class Proto_1000_Chain (
     val name: String,
-    val zeros: Byte,
-    val heads: Array<String>
+    val zeros: Byte
 )
- */
 
-fun ByteArray.toHeader (): Header {
-    return ProtoBuf.load(Header.serializer(), this)
+@Serializable
+data class Proto_1000_Height_Hash (
+    val height: Long,
+    val hash:   Array<Byte>
+)
+
+fun ByteArray.toHeader (): Proto_Header {
+    return ProtoBuf.load(Proto_Header.serializer(), this)
 }
 
 fun server (port : Int = 8330) {

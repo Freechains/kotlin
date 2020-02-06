@@ -71,16 +71,16 @@ fun String.fromJsonToChain () : Chain {
 }
 
 fun Chain.save () {
-    val dir = File("data/" + this.toPath())
+    val dir = File("chains/" + this.toPath())
     if (!dir.exists()) {
         dir.mkdirs()
     }
-    File("data/" + this.toPath() + ".chain").writeText(this.toJson())
+    File("chains/" + this.toPath() + ".chain").writeText(this.toJson())
 }
 
 fun Name_Zeros.load () : Chain {
     val chain = Chain(this.first,this.second)
-    val file = File("data/" + chain.toPath() + ".chain")
+    val file = File("chains/" + chain.toPath() + ".chain")
     if (!file.exists()) {
         chain.save()
     }
@@ -88,15 +88,15 @@ fun Name_Zeros.load () : Chain {
 }
 
 fun Chain.saveNode (node: Node) {
-    val dir = File("data/" + this.toPath())
+    val dir = File("chains/" + this.toPath())
     if (!dir.exists()) {
         dir.mkdirs()
     }
-    File("data/" + this.toPath() + "/" + node.hash + ".node").writeText(node.toJson())
+    File("chains/" + this.toPath() + "/" + node.hash + ".node").writeText(node.toJson())
 }
 
 fun Chain.loadNodeFromHash (hash: String): Node {
-    return File("data/" + this.toPath() + "/" + hash + ".node").readText().fromJsonToNode()
+    return File("chains/" + this.toPath() + "/" + hash + ".node").readText().fromJsonToNode()
 }
 
 
@@ -104,7 +104,7 @@ fun Chain.contains (hh: Height_Hash) : Boolean {
     if (this.hash == hh.hash) {
         return true
     } else {
-        val file = File("data/" + this.toPath() + "/" + hh.hash + ".node")
+        val file = File("chains/" + this.toPath() + "/" + hh.hash + ".node")
         return file.exists()
     }
 }

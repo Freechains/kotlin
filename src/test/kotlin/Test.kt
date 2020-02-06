@@ -15,7 +15,7 @@ import freechains.*
 class Tests {
     @Test
     fun a_reset () {
-        assert( File("data/").deleteRecursively() )
+        assert( File("chains/").deleteRecursively() )
     }
 
     @Test
@@ -63,7 +63,7 @@ class Tests {
 
     @Test
     fun d1_protobuf () {
-        val bytes = ProtoBuf.dump(Header.serializer(), Header('F'.toByte(), 'C'.toByte(), 0x1000))
+        val bytes = ProtoBuf.dump(Proto_Header.serializer(), Proto_Header('F'.toByte(), 'C'.toByte(), 0x1000))
         //println("SIZE_PROTOBUF_HEADER: ${bytes.size}")
         assert(bytes.size == 7)
     }
@@ -73,8 +73,8 @@ class Tests {
         thread { server() }
         Thread.sleep(100)
         val client = Socket("127.0.0.1", 8330)
-        val header = Header('F'.toByte(), 'C'.toByte(), 0x1000)
-        val bytes = ProtoBuf.dump(Header.serializer(), header)
+        val header = Proto_Header('F'.toByte(), 'C'.toByte(), 0x1000)
+        val bytes = ProtoBuf.dump(Proto_Header.serializer(), header)
         client.outputStream.write(bytes)
         client.close()
     }
