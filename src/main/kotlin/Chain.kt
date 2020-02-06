@@ -22,19 +22,20 @@ data class Chain (
 fun Chain.publish (payload: String) {
     this.publish(payload, Instant.now().toEpochMilli())
 }
-fun Chain.publish (payload: String, time: Long) {
+fun Chain.publish (payload: String, time: Long) : Node {
     val node = Node(time, 0, payload, this.heads)
     node.setNonceHashWithZeros(this.zeros)
     node.saveJsonToFS(this)
     this.heads = arrayOf(Height_Hash(node.height,node.hash!!))
     this.saveJsonToFS()
+    return node
 }
 
-fun Chain.toHash (): String {
+fun Chain.toHash () : String {
     return this.toByteArray().toHash()
 }
 
-fun Chain.toByteArray (): ByteArray {
+fun Chain.toByteArray () : ByteArray {
     val bytes = ByteArray(this.name.length + 1)
     var off = 0
     for (v in this.name) {
@@ -46,39 +47,48 @@ fun Chain.toByteArray (): ByteArray {
     return bytes
 }
 
-fun Chain.toPair (): Name_Zeros {
+fun Chain.toPair () : Name_Zeros {
     return Name_Zeros(this.name, this.zeros)
 }
 
-fun Chain.toPath (): String {
+fun Chain.toPath () : String {
     return this.name + "/" + this.zeros
 }
 
-fun Chain.toJson (): String {
+fun Chain.toJson () : String {
     @UnstableDefault
     val json = Json(JsonConfiguration(prettyPrint=true))
     return json.stringify(Chain.serializer(), this)
 }
 
-fun String.fromJsonToChain (): Chain {
+fun String.fromJsonToChain () : Chain {
     @UnstableDefault
     val json = Json(JsonConfiguration(prettyPrint=true))
     return json.parse(Chain.serializer(), this)
 }
 
 fun Chain.saveJsonToFS () {
-    val directory = File("data/" + this.toPath())
-    if (!directory.exists()) {
-        directory.mkdirs()
+    val dir = File("data/" + this.toPath())
+    if (!dir.exists()) {
+        dir.mkdirs()
     }
     File("data/" + this.toPath() + ".chain").writeText(this.toJson())
 }
 
-fun Name_Zeros.loadFromFS (): Chain {
+fun Name_Zeros.loadFromFS () : Chain {
     val chain = Chain(this.first,this.second)
     val file = File("data/" + chain.toPath() + ".chain")
     if (!file.exists()) {
         chain.saveJsonToFS()
     }
     return file.readText().fromJsonToChain()
+}
+
+fun Chain.contains (hh: Height_Hash) : Boolean {
+    if (this.hash == hh.hash) {
+        return true
+    } else {
+        val file = File("data/" + this.toPath() + "/" + hh.hash + ".node")
+        return file.exists()
+    }
 }

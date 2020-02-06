@@ -48,7 +48,11 @@ fun String.fromHashLoadFromFS (chain: Chain): Node {
     return File("data/" + chain.toPath() + "/" + this + ".node").readText().fromJsonToNode()
 }
 
-fun Node.toHash (): String {
+fun Node.toHeightHash () : Height_Hash {
+    return Height_Hash(this.height, this.hash!!)
+}
+
+fun Node.calcHash (): String {
     return this.toByteArray().toHash()
 }
 
@@ -69,7 +73,7 @@ fun hash2zeros (hash: String): Int {
 
 fun Node.setNonceHashWithZeros (zeros: Byte) {
     while (true) {
-        val hash = this.toHash()
+        val hash = this.calcHash()
         //println(hash)
         if (hash2zeros(hash) >= zeros) {
             this.hash = hash

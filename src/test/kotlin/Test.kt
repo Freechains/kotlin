@@ -1,4 +1,6 @@
 import org.assertj.core.api.Assertions.assertThat
+//import org.junit.jupiter.api.MethodOrderer.Alphanumeric;
+//import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.Test
 
 import java.net.Socket
@@ -8,7 +10,9 @@ import kotlin.concurrent.thread
 import kotlinx.serialization.protobuf.ProtoBuf
 
 import freechains.*
+import org.junit.jupiter.api.MethodOrderer
 
+//@TestMethodOrder(Alphanumeric.class)
 class Tests {
     @Test
     fun chain () {
@@ -36,8 +40,14 @@ class Tests {
     @Test
     fun publish () {
         val chain = Name_Zeros("/ceu",10.toByte()).loadFromFS()
-        chain.publish("aaa", 0)
-        chain.publish("bbb", 1)
+        val n1 = chain.publish("aaa", 0)
+        val n2 = chain.publish("bbb", 1)
+
+        assert(chain.contains(Height_Hash(0,chain.hash)))
+        //println(n1.toHeightHash())
+        assert(chain.contains(n1.toHeightHash()))
+        assert(chain.contains(n2.toHeightHash()))
+        assert(!chain.contains(Height_Hash(2,"........")))
     }
 
     @Test
