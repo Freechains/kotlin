@@ -10,7 +10,6 @@ import kotlin.concurrent.thread
 import kotlinx.serialization.protobuf.ProtoBuf
 
 import freechains.*
-import org.junit.jupiter.api.MethodOrderer
 
 //@TestMethodOrder(Alphanumeric.class)
 class Tests {
@@ -18,9 +17,9 @@ class Tests {
     fun chain () {
         val chain1 = Chain("/uerj", 0)
         println("Chain /uerj/0: ${chain1.toHash()}")
-        chain1.saveJsonToFS()
+        chain1.save()
 
-        val chain2 = chain1.toPair().loadFromFS()
+        val chain2 = chain1.toPair().load()
         assertThat(chain1.hashCode()).isEqualTo(chain2.hashCode())
     }
 
@@ -31,15 +30,15 @@ class Tests {
         val node = Node(0,0,"111", arrayOf(Height_Hash(0,chain.toHash())))
         node.setNonceHashWithZeros(0)
         println("Node /uerj/0/111: ${node.hash!!}")
-        node.saveJsonToFS(chain)
+        chain.saveNode(node)
 
-        val node2 = node.hash!!.fromHashLoadFromFS(chain)
+        val node2 = chain.loadNodeFromHash(node.hash!!)
         assertThat(node.hashCode()).isEqualTo(node2.hashCode())
     }
 
     @Test
     fun publish () {
-        val chain = Name_Zeros("/ceu",10.toByte()).loadFromFS()
+        val chain = Name_Zeros("/ceu",10.toByte()).load()
         val n1 = chain.publish("aaa", 0)
         val n2 = chain.publish("bbb", 1)
 

@@ -36,18 +36,6 @@ fun String.fromJsonToNode (): Node {
     return json.parse(Node.serializer(), this)
 }
 
-fun Node.saveJsonToFS (chain: Chain) {
-    val directory = File("data/" + chain.toPath())
-    if (!directory.exists()) {
-        directory.mkdirs()
-    }
-    File("data/" + chain.toPath() + "/" + this.hash + ".node").writeText(this.toJson())
-}
-
-fun String.fromHashLoadFromFS (chain: Chain): Node {
-    return File("data/" + chain.toPath() + "/" + this + ".node").readText().fromJsonToNode()
-}
-
 fun Node.toHeightHash () : Height_Hash {
     return Height_Hash(this.height, this.hash!!)
 }
