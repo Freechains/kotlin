@@ -7,7 +7,11 @@ import kotlinx.serialization.json.JsonConfiguration
 import java.io.File
 import java.time.Instant
 
-typealias Chain_NZ = Pair<String,Byte>
+@Serializable
+data class Chain_NZ (
+    val name  : String,
+    val zeros : Byte
+)
 
 @Serializable
 data class Chain (
@@ -16,7 +20,7 @@ data class Chain (
     val zeros : Byte
 ) {
     val hash  : String = this.toHash()
-    var heads : Array<Node_HH> = arrayOf(this.genHH())
+    var heads : Array<Node_HH> = arrayOf(this.toGenHH())
 }
 
 // JSON
@@ -35,8 +39,8 @@ fun String.fromJsonToChain () : Chain {
 
 // PROTO
 
-fun Chain.toProtoHH () : Proto_1000_Chain {
-    return Proto_1000_Chain(this.name, this.zeros)
+fun Chain.toProtoHH () : Chain_NZ {
+    return Chain_NZ(name, zeros)
 }
 
 // PUBLISH
@@ -49,14 +53,14 @@ fun Chain.publish (payload: String, time: Long) : Node {
     val node = Node(time, 0, payload, this.heads)
     node.setNonceHashWithZeros(this.zeros)
     this.saveNode(node)
-    this.heads = arrayOf(node.genHH())
+    this.heads = arrayOf(node.toNodeHH())
     this.save()
     return node
 }
 
 // GENESIS
 
-fun Chain.genHH () : Node_HH {
+fun Chain.toGenHH () : Node_HH {
     return Node_HH(0, this.toHash())
 }
 

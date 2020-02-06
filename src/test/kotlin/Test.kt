@@ -41,7 +41,7 @@ class Tests {
     @Test
     fun b2_node () {
         val chain = Chain("local/", "/uerj",0)
-        val node = Node(0,0,"111", arrayOf(chain.genHH()))
+        val node = Node(0,0,"111", arrayOf(chain.toGenHH()))
         node.setNonceHashWithZeros(0)
         //println("Node /uerj/0/111: ${node.hash!!}")
         chain.saveNode(node)
@@ -56,11 +56,11 @@ class Tests {
         val n2 = chain.publish("bbb", 1)
         val n3 = chain.publish("ccc", 2)
 
-        assert(chain.containsNode(chain.genHH()))
+        assert(chain.containsNode(chain.toGenHH()))
         //println(n1.toHeightHash())
-        assert(chain.containsNode(n1.genHH()))
-        assert(chain.containsNode(n2.genHH()))
-        assert(chain.containsNode(n3.genHH()))
+        assert(chain.containsNode(n1.toNodeHH()))
+        assert(chain.containsNode(n2.toNodeHH()))
+        assert(chain.containsNode(n3.toNodeHH()))
         assert(!chain.containsNode(Node_HH(2, "........")))
     }
 
@@ -78,9 +78,9 @@ class Tests {
         //println("SIZE_PROTOBUF_HEADER: ${bytes.size}")
         assert(header.size == 7)
 
-        val v0 = Proto_1000_Chain("/ceu", 10)
-        val v1 = ProtoBuf.dump(Proto_1000_Chain.serializer(), v0)
-        val v2 = ProtoBuf.load(Proto_1000_Chain.serializer(), v1)
+        val v0 = Chain_NZ("/ceu", 10)
+        val v1 = ProtoBuf.dump(Chain_NZ.serializer(), v0)
+        val v2 = ProtoBuf.load(Chain_NZ.serializer(), v1)
         assert(v0 == v2)
 
         val n1 = Node(0,0,"111", arrayOf(Node_HH(0,"000"), Node_HH(1,"111")))
@@ -120,7 +120,7 @@ class Tests {
 
         // CHAIN
         if (true) {
-            val bytes = ProtoBuf.dump(Proto_1000_Chain.serializer(), chain.toProtoHH())
+            val bytes = ProtoBuf.dump(Chain_NZ.serializer(), chain.toProtoHH())
             assert(bytes.size <= Short.MAX_VALUE)
             writer.writeShort(bytes.size)
             writer.write(bytes)
@@ -128,8 +128,8 @@ class Tests {
 
         // HEIGHT_HASH
         if (true) {
-            val hh = Proto_1000_Height_Hash(10, "000d621b455be6f7a441dc662b7506a0ecd85ab835853c2528ab5f212d61b5c7".hashToByteArray())
-            val bytes = ProtoBuf.dump(Proto_1000_Height_Hash.serializer(), hh)
+            val hh = Proto_Node_HH(10, "000d621b455be6f7a441dc662b7506a0ecd85ab835853c2528ab5f212d61b5c7".hashToByteArray())
+            val bytes = ProtoBuf.dump(Proto_Node_HH.serializer(), hh)
             //println("${bytes.size} : $bytes")
             assert(bytes.size <= Byte.MAX_VALUE)
             writer.writeByte(bytes.size)
@@ -140,7 +140,7 @@ class Tests {
 
         // HEIGHT_HASH
         if (true) {
-            val bytes = ProtoBuf.dump(Proto_1000_Height_Hash.serializer(), node.toProtoHH())
+            val bytes = ProtoBuf.dump(Proto_Node_HH.serializer(), node.toProtoHH())
             //println("${bytes.size} : $bytes")
             assert(bytes.size <= Byte.MAX_VALUE)
             writer.writeByte(bytes.size)
@@ -160,7 +160,7 @@ class Tests {
 
         // TODO: testar chains e nodes que nao existam
 
-        Thread.sleep(1000)
+        Thread.sleep(100)
         client.close()
     }
 
@@ -168,20 +168,20 @@ class Tests {
     fun e1_graph () {
         val chain = Chain("local/", "/graph",0)
 
-        val a1 = Node(0,0,"a1", arrayOf(chain.genHH()))
-        val b1 = Node(0,0,"b1", arrayOf(chain.genHH()))
+        val a1 = Node(0,0,"a1", arrayOf(chain.toGenHH()))
+        val b1 = Node(0,0,"b1", arrayOf(chain.toGenHH()))
         a1.setNonceHashWithZeros(0)
         b1.setNonceHashWithZeros(0)
         chain.saveNode(a1)
         chain.saveNode(b1)
-        chain.heads = arrayOf(a1.genHH(), b1.genHH())
+        chain.heads = arrayOf(a1.toNodeHH(), b1.toNodeHH())
 
         val ab2 = chain.publish("ab2", 0)
 
-        val b2 = Node(0,0,"b2", arrayOf(b1.genHH()))
+        val b2 = Node(0,0,"b2", arrayOf(b1.toNodeHH()))
         b2.setNonceHashWithZeros(0)
         chain.saveNode(b2)
-        chain.heads = arrayOf(chain.heads[0], b2.genHH())
+        chain.heads = arrayOf(chain.heads[0], b2.toNodeHH())
 
         val ret0 = chain.getBacksWithHeightOf(chain.heads[0],1)
         val ret1 = chain.getBacksWithHeightOf(chain.heads[1],1)

@@ -46,13 +46,13 @@ fun ByteArray.protobufToNode (): Node {
 
 // PROTO
 
-fun Node.toProtoHH () : Proto_1000_Height_Hash {
-    return Proto_1000_Height_Hash(this.height, this.hash!!.hashToByteArray())
+fun Node.toProtoHH () : Proto_Node_HH {
+    return Proto_Node_HH(this.height, this.hash!!.hashToByteArray())
 }
 
 // HH
 
-fun Node.genHH () : Node_HH {
+fun Node.toNodeHH () : Node_HH {
     return Node_HH(this.height, this.hash!!)
 }
 

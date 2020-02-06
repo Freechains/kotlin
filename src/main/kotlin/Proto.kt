@@ -16,18 +16,14 @@ data class Proto_Header (
 )
 
 @Serializable
-data class Proto_1000_Chain (
-    val name  : String,
-    val zeros : Byte
-)
-
-@Serializable
-data class Proto_1000_Height_Hash (
+data class Proto_Node_HH (
     val height : Long,
     val hash   : ByteArray
 )
 
-fun Proto_1000_Height_Hash.genHH () : Node_HH {
+// CONVERSIONS
+
+fun Proto_Node_HH.toNodeHH () : Node_HH {
     return Node_HH(this.height, this.hash.toHexString())
 }
 
@@ -35,13 +31,15 @@ fun ByteArray.toHeader (): Proto_Header {
     return ProtoBuf.load(Proto_Header.serializer(), this)
 }
 
-fun ByteArray.to_1000_Chain (): Proto_1000_Chain {
-    return ProtoBuf.load(Proto_1000_Chain.serializer(), this)
+fun ByteArray.toChainNZ (): Chain_NZ {
+    return ProtoBuf.load(Chain_NZ.serializer(), this)
 }
 
-fun ByteArray.to_1000_Height_Hash (): Proto_1000_Height_Hash {
-    return ProtoBuf.load(Proto_1000_Height_Hash.serializer(), this)
+fun ByteArray.toProtoNodeHH (): Proto_Node_HH {
+    return ProtoBuf.load(Proto_Node_HH.serializer(), this)
 }
+
+// SERVER
 
 fun server (host : Host) {
     val server = ServerSocket(host.port)
@@ -54,6 +52,8 @@ fun server (host : Host) {
     }
 
 }
+
+// HANDLER
 
 class Handler (host: Host, client: Socket) {
     val host = host
@@ -75,15 +75,15 @@ class Handler (host: Host, client: Socket) {
 
     fun handle_1000 () {
         val n = reader.readShort()
-        val chain_ = reader.readNBytes(n.toInt()).to_1000_Chain()
+        val chain_ = reader.readNBytes(n.toInt()).toChainNZ()
         val chain = Chain_load(host.path, chain_.name,chain_.zeros)
         println(chain)
 
         while (true) {
             val n = reader.readByte()
-            val hh = reader.readNBytes(n.toInt()).to_1000_Height_Hash()
-            println(hh.genHH())
-            if (chain.containsNode(hh.genHH())) {
+            val hh = reader.readNBytes(n.toInt()).toProtoNodeHH()
+            println(hh.toNodeHH())
+            if (chain.containsNode(hh.toNodeHH())) {
                 writer.writeByte(1)
             } else {
                 writer.writeByte(0)
