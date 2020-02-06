@@ -82,6 +82,12 @@ class Tests {
         val v1 = ProtoBuf.dump(Proto_1000_Chain.serializer(), v0)
         val v2 = ProtoBuf.load(Proto_1000_Chain.serializer(), v1)
         assert(v0 == v2)
+
+        val n1 = Node(0,0,"111", arrayOf(Node_HH(0,"000"), Node_HH(1,"111")))
+        n1.hash = "XXX"
+        val bytes = ProtoBuf.dump(Node.serializer(), n1)
+        val n2 = bytes.protobufToNode()
+        assert(n1.toString() == n2.toString())
     }
 
     @Test

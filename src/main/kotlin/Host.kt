@@ -12,6 +12,8 @@ data class Host (
     val port : Int
 )
 
+// JSON
+
 fun Host.toJson () : String {
     @UnstableDefault
     val json = Json(JsonConfiguration(prettyPrint=true))
@@ -23,6 +25,8 @@ fun String.fromJsonToHost () : Host {
     val json = Json(JsonConfiguration(prettyPrint=true))
     return json.parse(Host.serializer(), this)
 }
+
+// FILE SYSTEM
 
 fun Host.save () {
     val dir = File(this.path)
