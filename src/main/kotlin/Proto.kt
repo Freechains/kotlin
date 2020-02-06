@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoBuf
 import java.net.ServerSocket
 import java.net.Socket
+import java.util.*
 import kotlin.concurrent.thread
 
 @Serializable
@@ -12,7 +13,6 @@ data class Proto_Header (
     var C    : Byte,
     val type : Short
 )
-const val SIZE_PROTOBUF_HEADER = 7
 
 @Serializable
 data class Proto_1000_Chain (
@@ -37,23 +37,30 @@ fun server (host : Host) {
     while (true) {
         val client = server.accept()
         println("Client connected: ${client.inetAddress.hostAddress}")
-        thread { handler(client) }
+        thread { Handler(client).handle() }
     }
 
 }
 
-fun handler (client: Socket) {
+class Handler (client: Socket) {
     val reader = client.getInputStream()!!
+    val scanner = Scanner(reader)
     //val writer = client.getOutputStream()!!
 
-    val header= reader.readNBytes(SIZE_PROTOBUF_HEADER).toHeader()
-    assert(header.F.toChar()=='F' && header.C.toChar()=='C') { "invalid header signature" }
+    fun handle () {
+        val n = scanner.nextShort()
+        val header = reader.readNBytes(n.toInt()).toHeader()
+        assert(header.F.toChar() == 'F' && header.C.toChar() == 'C') { "invalid header signature" }
 
-    println("Type: 0x${header.type.toString(16)}")
-    /*
-    when (header.type) {
-        0x1000 -> xxx
-        else   -> error("invalid header type")
+        println("Type: 0x${header.type.toString(16)}")
+
+        when (header.type) {
+            0x1000.toShort() -> handle_1000()
+            else -> error("invalid header type")
+        }
     }
-    */
+
+    fun handle_1000 () {
+
+    }
 }

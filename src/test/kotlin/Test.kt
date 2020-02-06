@@ -63,9 +63,14 @@ class Tests {
 
     @Test
     fun d1_protobuf () {
-        val bytes = ProtoBuf.dump(Proto_Header.serializer(), Proto_Header('F'.toByte(), 'C'.toByte(), 0x1000))
+        val header = ProtoBuf.dump(Proto_Header.serializer(), Proto_Header('F'.toByte(), 'C'.toByte(), 0x1000))
         //println("SIZE_PROTOBUF_HEADER: ${bytes.size}")
-        assert(bytes.size == 7)
+        assert(header.size == 7)
+
+        val v0 = Proto_1000_Chain("/ceu", 10)
+        val v1 = ProtoBuf.dump(Proto_1000_Chain.serializer(), v0)
+        val v2 = ProtoBuf.load(Proto_1000_Chain.serializer(), v1)
+        assert(v0 == v2)
     }
 
     @Test
@@ -80,6 +85,8 @@ class Tests {
         val client = Socket("127.0.0.1", host.port)
         val header = Proto_Header('F'.toByte(), 'C'.toByte(), 0x1000)
         val bytes = ProtoBuf.dump(Proto_Header.serializer(), header)
+        assert(bytes.size <= Byte.MAX_VALUE)
+        client.outputStream.write(bytes.size)
         client.outputStream.write(bytes)
         client.close()
     }
