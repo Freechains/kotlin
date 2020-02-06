@@ -1,10 +1,10 @@
 package freechains
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.protobuf.ProtoBuf
-import java.net.ServerSocket
-import java.net.Socket
-import kotlin.concurrent.thread
+import kotlinx.serialization.UnstableDefault
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonConfiguration
+import java.io.File
 
 @Serializable
 data class Host (
@@ -12,54 +12,28 @@ data class Host (
     val port : Int
 )
 
-@Serializable
-data class Proto_Header (
-    val F    : Byte,
-    var C    : Byte,
-    val type : Short
-)
-const val SIZE_PROTOBUF_HEADER = 7
-
-@Serializable
-data class Proto_1000_Chain (
-    val name  : String,
-    val zeros : Byte
-)
-
-@Serializable
-data class Proto_1000_Height_Hash (
-    val height : Long,
-    val hash   : Array<Byte>
-)
-
-fun ByteArray.toHeader (): Proto_Header {
-    return ProtoBuf.load(Proto_Header.serializer(), this)
+fun Host.toJson () : String {
+    @UnstableDefault
+    val json = Json(JsonConfiguration(prettyPrint=true))
+    return json.stringify(Host.serializer(), this)
 }
 
-fun server (host : Host) {
-    val server = ServerSocket(host.port)
-    println("Server is running on port ${server.localPort}")
+fun String.fromJsonToHost () : Host {
+    @UnstableDefault
+    val json = Json(JsonConfiguration(prettyPrint=true))
+    return json.parse(Host.serializer(), this)
+}
 
-    while (true) {
-        val client = server.accept()
-        println("Client connected: ${client.inetAddress.hostAddress}")
-        thread { handler(client) }
+fun Host.save () {
+    val dir = File(this.path)
+    if (!dir.exists()) {
+        dir.mkdirs()
     }
-
+    File(this.path + "/host").writeText(this.toJson())
 }
 
-fun handler (client: Socket) {
-    val reader = client.getInputStream()!!
-    val writer = client.getOutputStream()!!
-
-    val header= reader.readNBytes(SIZE_PROTOBUF_HEADER).toHeader()
-    assert(header.F.toChar()=='F' && header.C.toChar()=='C') { "invalid header signature" }
-
-    println("Type: 0x${header.type.toString(16)}")
-    /*
-    when (header.type) {
-        0x1000 -> xxx
-        else   -> error("invalid header type")
-    }
-    */
+fun Host_load (path: String) : Host {
+    val file = File(path + "/host")
+    return file.readText().fromJsonToHost()
 }
+
