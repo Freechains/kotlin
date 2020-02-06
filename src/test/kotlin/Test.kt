@@ -41,7 +41,7 @@ class Tests {
     @Test
     fun b2_node () {
         val chain = Chain("local/", "/uerj",0)
-        val node = Node(0,0,"111", arrayOf(chain.toHH()))
+        val node = Node(0,0,"111", arrayOf(chain.genHH()))
         node.setNonceHashWithZeros(0)
         //println("Node /uerj/0/111: ${node.hash!!}")
         chain.saveNode(node)
@@ -56,12 +56,12 @@ class Tests {
         val n2 = chain.publish("bbb", 1)
         val n3 = chain.publish("ccc", 2)
 
-        assert(chain.contains(chain.toHH()))
+        assert(chain.containsNode(chain.genHH()))
         //println(n1.toHeightHash())
-        assert(chain.contains(n1.toHH()))
-        assert(chain.contains(n2.toHH()))
-        assert(chain.contains(n3.toHH()))
-        assert(!chain.contains(Node_HH(2, "........")))
+        assert(chain.containsNode(n1.genHH()))
+        assert(chain.containsNode(n2.genHH()))
+        assert(chain.containsNode(n3.genHH()))
+        assert(!chain.containsNode(Node_HH(2, "........")))
     }
 
     @Test
@@ -162,20 +162,20 @@ class Tests {
     fun e1_graph () {
         val chain = Chain("local/", "/graph",0)
 
-        val a1 = Node(0,0,"a1", arrayOf(chain.toHH()))
-        val b1 = Node(0,0,"b1", arrayOf(chain.toHH()))
+        val a1 = Node(0,0,"a1", arrayOf(chain.genHH()))
+        val b1 = Node(0,0,"b1", arrayOf(chain.genHH()))
         a1.setNonceHashWithZeros(0)
         b1.setNonceHashWithZeros(0)
         chain.saveNode(a1)
         chain.saveNode(b1)
-        chain.heads = arrayOf(a1.toHH(), b1.toHH())
+        chain.heads = arrayOf(a1.genHH(), b1.genHH())
 
         val ab2 = chain.publish("ab2", 0)
 
-        val b2 = Node(0,0,"b2", arrayOf(b1.toHH()))
+        val b2 = Node(0,0,"b2", arrayOf(b1.genHH()))
         b2.setNonceHashWithZeros(0)
         chain.saveNode(b2)
-        chain.heads = arrayOf(chain.heads[0], b2.toHH())
+        chain.heads = arrayOf(chain.heads[0], b2.genHH())
 
         val ret0 = chain.getBacksWithHeightOf(chain.heads[0],1)
         val ret1 = chain.getBacksWithHeightOf(chain.heads[1],1)

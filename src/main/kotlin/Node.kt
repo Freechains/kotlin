@@ -52,7 +52,7 @@ fun Node.toProtoHH () : Proto_1000_Height_Hash {
 
 // HH
 
-fun Node.toHH () : Node_HH {
+fun Node.genHH () : Node_HH {
     return Node_HH(this.height, this.hash!!)
 }
 

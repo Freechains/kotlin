@@ -7,7 +7,7 @@ import kotlinx.serialization.json.JsonConfiguration
 import java.io.File
 import java.time.Instant
 
-typealias Name_Zeros = Pair<String,Byte>
+typealias Chain_NZ = Pair<String,Byte>
 
 @Serializable
 data class Chain (
@@ -16,53 +16,10 @@ data class Chain (
     val zeros : Byte
 ) {
     val hash  : String = this.toHash()
-    var heads : Array<Node_HH> = arrayOf(this.toHH())
+    var heads : Array<Node_HH> = arrayOf(this.genHH())
 }
 
-fun Chain.publish (payload: String) : Node {
-    return this.publish(payload, Instant.now().toEpochMilli())
-}
-
-fun Chain.publish (payload: String, time: Long) : Node {
-    val node = Node(time, 0, payload, this.heads)
-    node.setNonceHashWithZeros(this.zeros)
-    this.saveNode(node)
-    this.heads = arrayOf(node.toHH())
-    this.save()
-    return node
-}
-
-fun Chain.toHH () : Node_HH {
-    return Node_HH(0, this.toHash())
-}
-
-fun Chain.toHash () : String {
-    return this.toByteArray().toHash()
-}
-
-fun Chain.toByteArray () : ByteArray {
-    val bytes = ByteArray(this.name.length + 1)
-    var off = 0
-    for (v in this.name) {
-        bytes.set(off, v.toByte())
-        off += 1
-    }
-    bytes.set(off, this.zeros)
-    off += 1
-    return bytes
-}
-
-fun Chain.toPair () : Name_Zeros {
-    return Name_Zeros(this.name, this.zeros)
-}
-
-fun Chain.toProtoHH () : Proto_1000_Chain {
-    return Proto_1000_Chain(this.name, this.zeros)
-}
-
-fun Chain.toPath () : String {
-    return this.name + "/" + this.zeros
-}
+// JSON
 
 fun Chain.toJson () : String {
     @UnstableDefault
@@ -75,6 +32,59 @@ fun String.fromJsonToChain () : Chain {
     val json = Json(JsonConfiguration(prettyPrint=true))
     return json.parse(Chain.serializer(), this)
 }
+
+// PROTO
+
+fun Chain.toProtoHH () : Proto_1000_Chain {
+    return Proto_1000_Chain(this.name, this.zeros)
+}
+
+// PUBLISH
+
+fun Chain.publish (payload: String) : Node {
+    return this.publish(payload, Instant.now().toEpochMilli())
+}
+
+fun Chain.publish (payload: String, time: Long) : Node {
+    val node = Node(time, 0, payload, this.heads)
+    node.setNonceHashWithZeros(this.zeros)
+    this.saveNode(node)
+    this.heads = arrayOf(node.genHH())
+    this.save()
+    return node
+}
+
+// GENESIS
+
+fun Chain.genHH () : Node_HH {
+    return Node_HH(0, this.toHash())
+}
+
+// PATH
+
+fun Chain.toPath () : String {
+    return this.name + "/" + this.zeros
+}
+
+// HASH
+
+fun Chain.toHash () : String {
+    return this.toByteArray().toHash()
+}
+
+private fun Chain.toByteArray () : ByteArray {
+    val bytes = ByteArray(this.name.length + 1)
+    var off = 0
+    for (v in this.name) {
+        bytes.set(off, v.toByte())
+        off += 1
+    }
+    bytes.set(off, this.zeros)
+    off += 1
+    return bytes
+}
+
+// FILE SYSTEM
 
 fun Chain_create (path: String, name: String, zeros: Byte) : Chain {
     val chain = Chain(path,name,zeros)
@@ -98,6 +108,8 @@ fun Chain_load (path: String, name: String, zeros: Byte) : Chain {
     return file.readText().fromJsonToChain()
 }
 
+// NDOE
+
 fun Chain.saveNode (node: Node) {
     val dir = File(this.path + "/chains/" + this.toPath())
     if (!dir.exists()) {
@@ -110,7 +122,7 @@ fun Chain.loadNodeFromHash (hash: String): Node {
     return File(this.path + "/chains/" + this.toPath() + "/" + hash + ".node").readText().jsonToNode()
 }
 
-fun Chain.contains (hh: Node_HH) : Boolean {
+fun Chain.containsNode (hh: Node_HH) : Boolean {
     if (this.hash == hh.hash) {
         return true
     } else {
@@ -118,6 +130,8 @@ fun Chain.contains (hh: Node_HH) : Boolean {
         return file.exists()
     }
 }
+
+// TODO: REMOVE?
 
 fun Chain.getBacksWithHeightOf (hh: Node_HH, height: Long) : ArrayList<String> {
     val ret: ArrayList<String> = ArrayList()

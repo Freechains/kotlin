@@ -27,7 +27,7 @@ data class Proto_1000_Height_Hash (
     val hash   : ByteArray
 )
 
-fun Proto_1000_Height_Hash.toHH () : Node_HH {
+fun Proto_1000_Height_Hash.genHH () : Node_HH {
     return Node_HH(this.height, this.hash.toHexString())
 }
 
@@ -82,8 +82,8 @@ class Handler (host: Host, client: Socket) {
         while (true) {
             val n = reader.readByte()
             val hh = reader.readNBytes(n.toInt()).to_1000_Height_Hash()
-            println(hh.toHH())
-            if (chain.contains(hh.toHH())) {
+            println(hh.genHH())
+            if (chain.containsNode(hh.genHH())) {
                 writer.writeByte(1)
             } else {
                 writer.writeByte(0)
