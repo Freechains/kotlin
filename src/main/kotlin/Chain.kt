@@ -11,6 +11,7 @@ typealias Name_Zeros = Pair<String,Byte>
 
 @Serializable
 data class Chain (
+    val path  : String,
     val name  : String,
     val zeros : Byte
 ) {
@@ -71,16 +72,16 @@ fun String.fromJsonToChain () : Chain {
 }
 
 fun Chain.save () {
-    val dir = File("chains/" + this.toPath())
+    val dir = File(this.path + "/chains/" + this.toPath())
     if (!dir.exists()) {
         dir.mkdirs()
     }
-    File("chains/" + this.toPath() + ".chain").writeText(this.toJson())
+    File(this.path + "/chains/" + this.toPath() + ".chain").writeText(this.toJson())
 }
 
-fun Name_Zeros.load () : Chain {
-    val chain = Chain(this.first,this.second)
-    val file = File("chains/" + chain.toPath() + ".chain")
+fun Name_Zeros.load (path: String) : Chain {
+    val chain = Chain(path,this.first,this.second)
+    val file = File(path + "/chains/" + chain.toPath() + ".chain")
     if (!file.exists()) {
         chain.save()
     }
@@ -88,15 +89,15 @@ fun Name_Zeros.load () : Chain {
 }
 
 fun Chain.saveNode (node: Node) {
-    val dir = File("chains/" + this.toPath())
+    val dir = File(this.path + "/chains/" + this.toPath())
     if (!dir.exists()) {
         dir.mkdirs()
     }
-    File("chains/" + this.toPath() + "/" + node.hash + ".node").writeText(node.toJson())
+    File(this.path + "/chains/" + this.toPath() + "/" + node.hash + ".node").writeText(node.toJson())
 }
 
 fun Chain.loadNodeFromHash (hash: String): Node {
-    return File("chains/" + this.toPath() + "/" + hash + ".node").readText().fromJsonToNode()
+    return File(this.path + "/chains/" + this.toPath() + "/" + hash + ".node").readText().fromJsonToNode()
 }
 
 
@@ -104,7 +105,7 @@ fun Chain.contains (hh: Height_Hash) : Boolean {
     if (this.hash == hh.hash) {
         return true
     } else {
-        val file = File("chains/" + this.toPath() + "/" + hh.hash + ".node")
+        val file = File(this.path + "/chains/" + this.toPath() + "/" + hh.hash + ".node")
         return file.exists()
     }
 }

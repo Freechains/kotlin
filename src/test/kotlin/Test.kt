@@ -20,16 +20,16 @@ class Tests {
 
     @Test
     fun b1_chain () {
-        val chain1 = Chain("/uerj", 0)
+        val chain1 = Chain(".", "/uerj", 0)
         //println("Chain /uerj/0: ${chain1.toHash()}")
         chain1.save()
-        val chain2 = chain1.toPair().load()
+        val chain2 = chain1.toPair().load("./")
         assertThat(chain1.hashCode()).isEqualTo(chain2.hashCode())
     }
 
     @Test
     fun b2_node () {
-        val chain = Chain("/uerj",0)
+        val chain = Chain(".", "/uerj",0)
         val node = Node(0,0,"111", arrayOf(chain.toHeightHash()))
         node.setNonceHashWithZeros(0)
         //println("Node /uerj/0/111: ${node.hash!!}")
@@ -40,7 +40,7 @@ class Tests {
 
     @Test
     fun c1_publish () {
-        val chain = Name_Zeros("/ceu", 10.toByte()).load()
+        val chain = Name_Zeros("/ceu", 10.toByte()).load(".")
         val n1 = chain.publish("aaa", 0)
         val n2 = chain.publish("bbb", 1)
         val n3 = chain.publish("ccc", 2)
@@ -55,7 +55,7 @@ class Tests {
 
     @Test
     fun c2_getBacks () {
-        val chain = Name_Zeros("/ceu", 10.toByte()).load()
+        val chain = Name_Zeros("/ceu", 10.toByte()).load(".")
         val ret = chain.getBacksWithHeightOf(chain.heads[0],2)
         //println(ret)
         assert(ret.toString() == "[000d621b455be6f7a441dc662b7506a0ecd85ab835853c2528ab5f212d61b5c7]")
@@ -81,7 +81,7 @@ class Tests {
 
     @Test
     fun e1_graph () {
-        val chain = Chain("/graph",0)
+        val chain = Chain(".", "/graph",0)
 
         val a1 = Node(0,0,"a1", arrayOf(chain.toHeightHash()))
         val b1 = Node(0,0,"b1", arrayOf(chain.toHeightHash()))
