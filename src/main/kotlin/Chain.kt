@@ -105,20 +105,22 @@ fun Chain.contains (hh: Height_Hash) : Boolean {
     }
 }
 
-fun Chain.getBacksWithHeightOf (node: Node, height: Long) : ArrayList<String> {
+fun Chain.getBacksWithHeightOf (hh: Height_Hash, height: Long) : ArrayList<String> {
     val ret: ArrayList<String> = ArrayList()
-    this.getBacksWithHeightOf(ret, node, height)
+    this.getBacksWithHeightOf(ret, hh, height)
     return ret
 }
 
-fun Chain.getBacksWithHeightOf (ret: ArrayList<String>, node: Node, height: Long) {
-    val ret = ArrayList<String>()
+fun Chain.getBacksWithHeightOf (ret: ArrayList<String>, hh: Height_Hash, height: Long) {
+    //println("$height vs $hh")
+    assert(hh.height >= height) { "unexpected height"}
+    if (hh.height == height) {
+        ret.add(hh.hash)
+        return
+    }
+
+    val node = this.loadNodeFromHash(hh.hash)
     for (back in node.backs) {
-        if (back.height == height) {
-            ret.add(back.hash)
-        } else {
-            val tmp = this.loadNodeFromHash(back.hash)
-            this.getBacksWithHeightOf(ret, tmp,height-1)
-        }
+        this.getBacksWithHeightOf(ret, back, height)
     }
 }

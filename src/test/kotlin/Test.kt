@@ -38,15 +38,24 @@ class Tests {
 
     @Test
     fun publish () {
-        val chain = Name_Zeros("/ceu",10.toByte()).load()
+        val chain = Name_Zeros("/ceu", 10.toByte()).load()
         val n1 = chain.publish("aaa", 0)
         val n2 = chain.publish("bbb", 1)
 
-        assert(chain.contains(Height_Hash(0,chain.hash)))
+        assert(chain.contains(Height_Hash(0, chain.hash)))
         //println(n1.toHeightHash())
         assert(chain.contains(n1.toHeightHash()))
         assert(chain.contains(n2.toHeightHash()))
-        assert(!chain.contains(Height_Hash(2,"........")))
+        assert(!chain.contains(Height_Hash(2, "........")))
+    }
+
+    @Test
+    fun getBacks () {
+        val chain = Name_Zeros("/ceu", 10.toByte()).load()
+        //println(chain.heads[0])
+        val ret = chain.getBacksWithHeightOf(chain.heads[0],10)
+        println(ret)
+        // TODO: testar forks e joins
     }
 
     @Test
