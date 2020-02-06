@@ -5,6 +5,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 import java.security.MessageDigest
 import kotlinx.serialization.*
+import kotlinx.serialization.protobuf.ProtoBuf
 import kotlin.math.max
 
 @Serializable
@@ -30,6 +31,10 @@ fun Node.toJson (): String {
     return json.stringify(Node.serializer(), this)
 }
 
+fun ByteArray.protobufToNode (): Node {
+    return ProtoBuf.load(Node.serializer(), this)
+}
+
 fun String.fromJsonToNode (): Node {
     @UnstableDefault
     val json = Json(JsonConfiguration(prettyPrint=true))
@@ -38,6 +43,10 @@ fun String.fromJsonToNode (): Node {
 
 fun Node.toHeightHash () : Height_Hash {
     return Height_Hash(this.height, this.hash!!)
+}
+
+fun Node.toProto () : Proto_1000_Height_Hash {
+    return Proto_1000_Height_Hash(this.height, this.hash!!.hexToByteArray())
 }
 
 fun Node.calcHash (): String {

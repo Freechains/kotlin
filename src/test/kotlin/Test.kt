@@ -10,6 +10,7 @@ import kotlin.concurrent.thread
 import kotlinx.serialization.protobuf.ProtoBuf
 
 import freechains.*
+import java.io.DataInputStream
 import java.io.DataOutputStream
 
 @TestMethodOrder(Alphanumeric::class)
@@ -92,7 +93,14 @@ class Tests {
 
         thread { server(host) }
         Thread.sleep(100)
+
+        // REMOTE
+        val remote = Host("remote/", 8331)
+        val chain = Chain_create(remote.path, "/ceu", 10)
+        val node = chain.publish("remote", 0)
+
         val client = Socket("127.0.0.1", host.port)
+        val reader = DataInputStream(client.getInputStream())
         val writer = DataOutputStream(client.getOutputStream())
 
         // HEADER
@@ -106,8 +114,7 @@ class Tests {
 
         // CHAIN
         if (true) {
-            val chain = Proto_1000_Chain("/ceu", 10)
-            val bytes = ProtoBuf.dump(Proto_1000_Chain.serializer(), chain)
+            val bytes = ProtoBuf.dump(Proto_1000_Chain.serializer(), chain.toProto())
             assert(bytes.size <= Short.MAX_VALUE)
             writer.writeShort(bytes.size)
             writer.write(bytes)
@@ -115,13 +122,34 @@ class Tests {
 
         // HEIGHT_HASH
         if (true) {
-            val chain = Chain_load("local/", "/ceu", 10)
             val hh = Proto_1000_Height_Hash(10, "000d621b455be6f7a441dc662b7506a0ecd85ab835853c2528ab5f212d61b5c7".hexToByteArray())
             val bytes = ProtoBuf.dump(Proto_1000_Height_Hash.serializer(), hh)
             //println("${bytes.size} : $bytes")
             assert(bytes.size <= Byte.MAX_VALUE)
             writer.writeByte(bytes.size)
             writer.write(bytes)
+            val ret = reader.readByte()
+            assert(ret == 1.toByte())
+        }
+
+        // HEIGHT_HASH
+        if (true) {
+            val bytes = ProtoBuf.dump(Proto_1000_Height_Hash.serializer(), node.toProto())
+            //println("${bytes.size} : $bytes")
+            assert(bytes.size <= Byte.MAX_VALUE)
+            writer.writeByte(bytes.size)
+            writer.write(bytes)
+            val ret = reader.readByte()
+            assert(ret == 0.toByte())
+
+            // NODE
+            if (true) {
+                val byte = ProtoBuf.dump(Node.serializer(), node)
+                assert(bytes.size <= Int.MAX_VALUE)
+                writer.writeInt(bytes.size)
+                println(node)
+                //writer.write(bytes)
+            }
         }
 
         // TODO: testar chains e nodes que nao existam

@@ -19,9 +19,10 @@ data class Chain (
     var heads : Array<Height_Hash> = arrayOf(this.toHeightHash())
 }
 
-fun Chain.publish (payload: String) {
-    this.publish(payload, Instant.now().toEpochMilli())
+fun Chain.publish (payload: String) : Node {
+    return this.publish(payload, Instant.now().toEpochMilli())
 }
+
 fun Chain.publish (payload: String, time: Long) : Node {
     val node = Node(time, 0, payload, this.heads)
     node.setNonceHashWithZeros(this.zeros)
@@ -53,6 +54,10 @@ fun Chain.toByteArray () : ByteArray {
 
 fun Chain.toPair () : Name_Zeros {
     return Name_Zeros(this.name, this.zeros)
+}
+
+fun Chain.toProto () : Proto_1000_Chain {
+    return Proto_1000_Chain(this.name, this.zeros)
 }
 
 fun Chain.toPath () : String {
@@ -104,7 +109,6 @@ fun Chain.saveNode (node: Node) {
 fun Chain.loadNodeFromHash (hash: String): Node {
     return File(this.path + "/chains/" + this.toPath() + "/" + hash + ".node").readText().fromJsonToNode()
 }
-
 
 fun Chain.contains (hh: Height_Hash) : Boolean {
     if (this.hash == hh.hash) {

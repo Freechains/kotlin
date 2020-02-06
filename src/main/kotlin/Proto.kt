@@ -3,6 +3,7 @@ package freechains
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoBuf
 import java.io.DataInputStream
+import java.io.DataOutputStream
 import java.net.ServerSocket
 import java.net.Socket
 import java.util.*
@@ -26,6 +27,10 @@ data class Proto_1000_Height_Hash (
     val height : Long,
     val hash   : ByteArray
 )
+
+fun Proto_1000_Height_Hash.toHeightHash () : Height_Hash {
+    return Height_Hash(this.height, this.hash.toHexString())
+}
 
 fun ByteArray.toHeader (): Proto_Header {
     return ProtoBuf.load(Proto_Header.serializer(), this)
@@ -54,7 +59,7 @@ fun server (host : Host) {
 class Handler (host: Host, client: Socket) {
     val host = host
     val reader = DataInputStream(client.getInputStream()!!)
-    //val writer = client.getOutputStream()!!
+    val writer = DataOutputStream(client.getOutputStream()!!)
 
     fun handle () {
         val n = reader.readByte()
@@ -77,10 +82,16 @@ class Handler (host: Host, client: Socket) {
 
         while (true) {
             val n = reader.readByte()
-            println(n)
             val hh = reader.readNBytes(n.toInt()).to_1000_Height_Hash()
-            val node = chain.loadNodeFromHash(hh.hash.toHexString())
-            println(node)
+            println(hh.toHeightHash())
+            if (chain.contains(hh.toHeightHash())) {
+                writer.writeByte(1)
+            } else {
+                writer.writeByte(0)
+                val n = reader.readInt()
+                //val node = reader.readNBytes(n.toInt()).protobufToNode()
+                println(n)
+            }
         }
     }
 }
