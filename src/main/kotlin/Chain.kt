@@ -15,7 +15,7 @@ data class Chain (
     val zeros : Byte
 ) {
     val hash  : String = this.toHash()
-    var heads : Array<Height_Hash> = arrayOf(Height_Hash(0,this.hash))
+    var heads : Array<Height_Hash> = arrayOf(this.toHeightHash())
 }
 
 fun Chain.publish (payload: String) {
@@ -25,9 +25,13 @@ fun Chain.publish (payload: String, time: Long) : Node {
     val node = Node(time, 0, payload, this.heads)
     node.setNonceHashWithZeros(this.zeros)
     this.saveNode(node)
-    this.heads = arrayOf(Height_Hash(node.height,node.hash!!))
+    this.heads = arrayOf(node.toHeightHash())
     this.save()
     return node
+}
+
+fun Chain.toHeightHash () : Height_Hash {
+    return Height_Hash(0, this.toHash())
 }
 
 fun Chain.toHash () : String {
