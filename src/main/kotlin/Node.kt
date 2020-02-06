@@ -92,7 +92,11 @@ fun Node.toByteArray (): ByteArray {
 }
 
 fun ByteArray.toHash (): String {
-    return MessageDigest.getInstance("SHA-256").digest(this).fold("", { str, it -> str + "%02x".format(it) })
+    return MessageDigest.getInstance("SHA-256").digest(this).toHexString()
+}
+
+fun ByteArray.toHexString () : String {
+    return this.fold("", { str, it -> str + "%02x".format(it) })
 }
 
 fun ByteArray.setLongAt (index: Int, value: Long) {

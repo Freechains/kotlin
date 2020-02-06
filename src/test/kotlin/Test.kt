@@ -10,6 +10,7 @@ import kotlin.concurrent.thread
 import kotlinx.serialization.protobuf.ProtoBuf
 
 import freechains.*
+import java.io.DataOutputStream
 
 @TestMethodOrder(Alphanumeric::class)
 class Tests {
@@ -83,11 +84,37 @@ class Tests {
         thread { server(host) }
         Thread.sleep(100)
         val client = Socket("127.0.0.1", host.port)
-        val header = Proto_Header('F'.toByte(), 'C'.toByte(), 0x1000)
-        val bytes = ProtoBuf.dump(Proto_Header.serializer(), header)
-        assert(bytes.size <= Byte.MAX_VALUE)
-        client.outputStream.write(bytes.size)
-        client.outputStream.write(bytes)
+        val writer = DataOutputStream(client.getOutputStream())
+
+        // HEADER
+        if (true) {
+            val header = Proto_Header('F'.toByte(), 'C'.toByte(), 0x1000)
+            val bytes = ProtoBuf.dump(Proto_Header.serializer(), header)
+            assert(bytes.size <= Byte.MAX_VALUE)
+            writer.writeByte(bytes.size)
+            writer.write(bytes)
+        }
+
+        // CHAIN
+        if (true) {
+            val chain = Proto_1000_Chain("/ceu", 0)
+            val bytes = ProtoBuf.dump(Proto_1000_Chain.serializer(), chain)
+            assert(bytes.size <= Short.MAX_VALUE)
+            writer.writeShort(bytes.size)
+            writer.write(bytes)
+        }
+
+        // HEIGHT_HASH
+        if (true) {
+            val hh = Proto_1000_Height_Hash(10, arrayOf(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32))
+            val bytes = ProtoBuf.dump(Proto_1000_Height_Hash.serializer(), hh)
+            //println("${bytes.size} : $bytes")
+            assert(bytes.size <= Byte.MAX_VALUE)
+            writer.writeByte(bytes.size)
+            writer.write(bytes)
+        }
+
+        Thread.sleep(1000)
         client.close()
     }
 
