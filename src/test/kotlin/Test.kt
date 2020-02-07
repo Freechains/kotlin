@@ -17,8 +17,7 @@ import java.io.DataOutputStream
 class Tests {
     @Test
     fun a_reset () {
-        assert( File("local/").deleteRecursively() )
-        assert( File("remote/").deleteRecursively() )
+        assert( File("tests/").deleteRecursively() )
     }
 
     @Test
@@ -31,7 +30,7 @@ class Tests {
 
     @Test
     fun b1_chain () {
-        val chain1 = Chain("local/", "/uerj", 0)
+        val chain1 = Chain("tests/local/", "/uerj", 0)
         //println("Chain /uerj/0: ${chain1.toHash()}")
         chain1.save()
         val chain2 = Chain_load(chain1.path, chain1.name, chain1.zeros)
@@ -40,7 +39,7 @@ class Tests {
 
     @Test
     fun b2_node () {
-        val chain = Chain("local/", "/uerj",0)
+        val chain = Chain("tests/local/", "/uerj",0)
         val node = Node(0,0,"111", arrayOf(chain.toGenHH()))
         node.setNonceHashWithZeros(0)
         //println("Node /uerj/0/111: ${node.hash!!}")
@@ -51,7 +50,7 @@ class Tests {
 
     @Test
     fun c1_publish () {
-        val chain = Chain_create("local/", "/ceu", 10)
+        val chain = Chain_create("tests/local/", "/ceu", 10)
         val n1 = chain.publish("aaa", 0)
         val n2 = chain.publish("bbb", 1)
         val n3 = chain.publish("ccc", 2)
@@ -66,7 +65,7 @@ class Tests {
 
     @Test
     fun c2_getBacks () {
-        val chain = Chain_load("local/", "/ceu", 10.toByte())
+        val chain = Chain_load("tests/local/", "/ceu", 10.toByte())
         val ret = chain.getBacksWithHeightOf(chain.heads[0],2)
         //println(ret)
         assert(ret.toString() == "[000d621b455be6f7a441dc662b7506a0ecd85ab835853c2528ab5f212d61b5c7]")
@@ -93,16 +92,15 @@ class Tests {
     @Test
     fun d2_net () {
         // LOCAL
-        val local = Host("local/", 8330)
+        val local = Host("tests/local/", 8330)
         local.save()
-        val tmp = Host_load("local/")
+        val tmp = Host_load("tests/local/")
         assert(tmp == local)
         thread { daemon(local) }
         Thread.sleep(100)
 
         // REMOTE
-        val remote = Host("remote/", 8331)
-        remote.save()
+        val remote = Host_create("tests/remote/")
         val chain = Chain_create(remote.path, "/ceu", 10)
         val node1 = chain.publish("remote1", 0)
         val node2 = chain.publish("remote2", 0)
@@ -195,14 +193,14 @@ class Tests {
     @Test
     fun d3_proto () {
         // REMOTE
-        val remote = Host_load("remote/")
+        val remote = Host_load("tests/remote/")
         val remote_chain = Chain_create(remote.path, "/d3", 5)
         remote_chain.publish("aaa", 0)
         remote_chain.publish("bbb", 0)
 
         // LOCAL
-        val local = Host_load("local/")
-        val local_chain = Chain_create(local.path, "/d3", 5)
+        val local = Host_load("tests/local/")
+        Chain_create(local.path, "/d3", 5)
         //thread { server(local) }
         //Thread.sleep(100)
 
@@ -213,7 +211,7 @@ class Tests {
 
     @Test
     fun e1_graph () {
-        val chain = Chain("local/", "/graph",0)
+        val chain = Chain("tests/local/", "/graph",0)
 
         val a1 = Node(0,0,"a1", arrayOf(chain.toGenHH()))
         val b1 = Node(0,0,"b1", arrayOf(chain.toGenHH()))
@@ -255,5 +253,14 @@ class Tests {
         (G) --<            >-- (ab2) --\__ (ab3)
                \-- (b1) --+--- (b2) ---/
          */
+    }
+
+    @Test
+    fun f1_peers () {
+        val h1 = Host_create("tests/h1/")
+        val h1_chain = Chain_create(h1.path, "/d3", 5)
+        h1_chain.publish("h1_1", 0)
+        h1_chain.publish("h1_2", 0)
+
     }
 }

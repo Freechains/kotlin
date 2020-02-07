@@ -29,18 +29,19 @@ fun String.fromJsonToHost () : Host {
 // FILE SYSTEM
 
 fun Host.save () {
-    val dir = File(this.path)
-    if (!dir.exists()) {
-        dir.mkdirs()
-    }
     File(this.path + "/host").writeText(this.toJson())
 }
 
-fun Host_load (path: String) : Host {
-    val file = File(path + "/host")
-    if (!file.exists()) {
-        Host(System.getProperty("user.dir"), 8330).save()
-    }
-    return file.readText().fromJsonToHost()
+fun Host_load (dir: String) : Host {
+    return File(dir + "/host").readText().fromJsonToHost()
 }
 
+fun Host_create (dir: String, port: Int = 8330) : Host {
+    val full = if (dir.substring(0,1) == "/") dir else System.getProperty("user.dir")+"/"+dir
+    val fs = File(full)
+    assert(!fs.exists()) { "directory already exists" }
+    fs.mkdirs()
+    val host = Host(full, port)
+    host.save()
+    return host
+}
