@@ -45,7 +45,7 @@ class Tests {
         node.setNonceHashWithZeros(0)
         //println("Node /uerj/0/111: ${node.hash!!}")
         chain.saveNode(node)
-        val node2 = chain.loadNodeFromHash(node.hash!!)
+        val node2 = chain.loadNodeFromHH(node.toNodeHH())
         assertThat(node.hashCode()).isEqualTo(node2.hashCode())
     }
 
@@ -102,6 +102,7 @@ class Tests {
 
         // REMOTE
         val remote = Host("remote/", 8331)
+        remote.save()
         val chain = Chain_create(remote.path, "/ceu", 10)
         val node1 = chain.publish("remote1", 0)
         val node2 = chain.publish("remote2", 0)
@@ -122,7 +123,7 @@ class Tests {
 
         // CHAIN
         if (true) {
-            val bytes = ProtoBuf.dump(Chain_NZ.serializer(), chain.toProtoHH())
+            val bytes = ProtoBuf.dump(Chain_NZ.serializer(), chain.toChainNZ())
             assert(bytes.size <= Short.MAX_VALUE)
             writer.writeShort(bytes.size)
             writer.write(bytes)
@@ -189,6 +190,25 @@ class Tests {
         Thread.sleep(100)
         client.close()
         println("client terminated")
+    }
+
+    @Test
+    fun d3_proto () {
+        // REMOTE
+        val remote = Host_load("remote/")
+        val remote_chain = Chain_create(remote.path, "/d3", 5)
+        remote_chain.publish("aaa", 0)
+        remote_chain.publish("bbb", 0)
+
+        // LOCAL
+        val local = Host_load("local/")
+        val local_chain = Chain_create(local.path, "/d3", 5)
+        //thread { server(local) }
+        //Thread.sleep(100)
+
+        val socket = Socket("127.0.0.1", local.port)
+        client_1000(socket, remote_chain)
+        socket.close()
     }
 
     @Test

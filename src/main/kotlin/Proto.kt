@@ -48,16 +48,16 @@ fun server (host : Host) {
     while (true) {
         val client = server.accept()
         println("Client connected: ${client.inetAddress.hostAddress}")
-        thread { handle(host,client) }
+        thread { serve(client, host) }
     }
 
 }
 
-// HANDLE
+// SERVE
 
-fun handle (host: Host, client: Socket) {
-    val reader = DataInputStream(client.getInputStream()!!)
-    val writer = DataOutputStream(client.getOutputStream()!!)
+fun serve (remote: Socket, local: Host) {
+    val reader = DataInputStream(remote.getInputStream()!!)
+    val writer = DataOutputStream(remote.getOutputStream()!!)
 
     // HEADER
     val n1 = reader.readByte()
@@ -65,20 +65,21 @@ fun handle (host: Host, client: Socket) {
     assert(header.F.toChar() == 'F' && header.C.toChar() == 'C') { "invalid header signature" }
     //println("Type: 0x${header.type.toString(16)}")
 
-    fun handle_1000 () {
+    fun serve_1000 () {
         val n2 = reader.readShort()
         val chain_ = reader.readNBytes(n2.toInt()).toChainNZ()
-        val chain = Chain_load(host.path, chain_.name,chain_.zeros)
-        //println(chain)
+        val chain = Chain_load(local.path, chain_.name,chain_.zeros)
+        println("[server] chain: $chain")
 
         // receive all heads
         while (true) {
             val n3 = reader.readByte()
             val hh3 = reader.readNBytes(n3.toInt()).toProtoNodeHH()
-            //println(hh3.toNodeHH())
+            println("[server] head: ${hh3.toNodeHH()}")
 
             // do I need this head?
             if (chain.containsNode(hh3.toNodeHH())) {
+                println("[server] dont need")
                 writer.writeByte(0)     // no, send me next or stop
             } else {
                 writer.writeByte(1)     // yes, send me it complete
@@ -87,15 +88,16 @@ fun handle (host: Host, client: Socket) {
                 fun receive () : Node {
                     val n4 = reader.readInt()
                     val node = reader.readNBytes(n4).protobufToNode()
-                    //println(node)
-                    //node.nonce += 1
+                    println("[server] node: $node")
                     node.recheck()
                     chain.saveNode(node)
 
                     // check backs from received node
                     for (hh4 in node.backs) {
-                        if (!chain.containsNode(hh4)) {
-                            //println("request ${hh4.hash} from ${node.hash}")
+                        if (chain.containsNode(hh4)) {
+                            chain.heads.remove(hh4)     // if child is a head, remove it!
+                        } else {
+                            println("[server] ask: ${hh4.hash} from ${node.hash}")
                             // send request for this back which I don't have
                             writer.writeByte(1)         // request a child
                             val bytes = ProtoBuf.dump(Proto_Node_HH.serializer(), hh4.toProtoHH())
@@ -106,6 +108,7 @@ fun handle (host: Host, client: Socket) {
                             receive()
                         }
                     }
+                    writer.writeByte(0)   // no more childs
                     return node
                 }
                 val head = receive()
@@ -120,14 +123,69 @@ fun handle (host: Host, client: Socket) {
             // has more heads?
             val more = reader.readByte()
             if (more.toInt() == 0) {
-                println("server disconnected")
+                println("[server] disconnected")
                 break       // no: disconnect
             }
         }
     }
 
     when (header.type) {
-        0x1000.toShort() -> handle_1000()
+        0x1000.toShort() -> serve_1000()
         else -> error("invalid header type")
     }
+}
+
+fun client_1000 (remote: Socket, chain: Chain) {
+    val reader = DataInputStream(remote.getInputStream()!!)
+    val writer = DataOutputStream(remote.getOutputStream()!!)
+
+    // send header
+    val header = Proto_Header('F'.toByte(), 'C'.toByte(), 0x1000)
+    val bytes1 = ProtoBuf.dump(Proto_Header.serializer(), header)
+    assert(bytes1.size <= Byte.MAX_VALUE)
+    writer.writeByte(bytes1.size)
+    writer.write(bytes1)
+
+    // send chain
+    val bytes2 = ProtoBuf.dump(Chain_NZ.serializer(), chain.toChainNZ())
+    assert(bytes2.size <= Short.MAX_VALUE)
+    writer.writeShort(bytes2.size)
+    writer.write(bytes2)
+
+    // HEADS
+    for (hh2 in chain.heads) {
+        // send head HH
+        val bytes3 = ProtoBuf.dump(Proto_Node_HH.serializer(), hh2.toProtoHH())
+        assert(bytes3.size <= Byte.MAX_VALUE)
+        writer.writeByte(bytes3.size)
+        writer.write(bytes3)
+
+        val ret3 = reader.readByte()
+        if (ret3 == 1.toByte()) {    // remote needs it
+            fun send (hh: Node_HH) {
+                // send complete head node
+                val node4 = chain.loadNodeFromHH(hh)
+                val bytes4 = ProtoBuf.dump(Node.serializer(), node4)
+                assert(bytes4.size <= Int.MAX_VALUE)
+                writer.writeInt(bytes4.size)
+                writer.write(bytes4)
+
+                // receive backs remote needs
+                val ret4 = reader.readByte()
+                if (ret4 == 1.toByte()) {    // remote needs back
+                    val n5 = reader.readByte()
+                    val hh5 = reader.readNBytes(n5.toInt()).toProtoNodeHH()
+                    println("[client]: server wants ${hh5.toNodeHH().hash}")
+                    send(hh5.toNodeHH())
+                }
+            }
+            send(hh2)
+        }
+
+        // one more head
+        writer.writeByte(1)
+    }
+
+    // no more heads
+    writer.writeByte(0)
 }

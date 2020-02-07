@@ -39,7 +39,7 @@ fun String.fromJsonToChain () : Chain {
 
 // PROTO
 
-fun Chain.toProtoHH () : Chain_NZ {
+fun Chain.toChainNZ () : Chain_NZ {
     return Chain_NZ(name, zeros)
 }
 
@@ -123,8 +123,8 @@ fun Chain.saveNode (node: Node) {
     File(this.path + "/chains/" + this.toPath() + "/" + node.hash + ".node").writeText(node.toJson())
 }
 
-fun Chain.loadNodeFromHash (hash: String): Node {
-    return File(this.path + "/chains/" + this.toPath() + "/" + hash + ".node").readText().jsonToNode()
+fun Chain.loadNodeFromHH (hh: Node_HH): Node {
+    return File(this.path + "/chains/" + this.toPath() + "/" + hh.hash + ".node").readText().jsonToNode()
 }
 
 fun Chain.containsNode (hh: Node_HH) : Boolean {
@@ -152,7 +152,7 @@ fun Chain.getBacksWithHeightOf (ret: ArrayList<String>, hh: Node_HH, height: Lon
         return
     }
 
-    val node = this.loadNodeFromHash(hh.hash)
+    val node = this.loadNodeFromHH(hh)
     for (back in node.backs) {
         this.getBacksWithHeightOf(ret, back, height)
     }
