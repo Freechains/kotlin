@@ -97,7 +97,7 @@ class Tests {
         local.save()
         val tmp = Host_load("local/")
         assert(tmp == local)
-        thread { server(local) }
+        thread { daemon(local) }
         Thread.sleep(100)
 
         // REMOTE
@@ -189,7 +189,7 @@ class Tests {
 
         Thread.sleep(100)
         client.close()
-        println("client terminated")
+        println("[client] terminated")
     }
 
     @Test
@@ -207,7 +207,7 @@ class Tests {
         //Thread.sleep(100)
 
         val socket = Socket("127.0.0.1", local.port)
-        client_1000(socket, remote_chain)
+        send_1000(socket, remote_chain)
         socket.close()
     }
 

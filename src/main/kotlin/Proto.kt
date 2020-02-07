@@ -41,21 +41,21 @@ fun ByteArray.toProtoNodeHH (): Proto_Node_HH {
 
 // SERVER
 
-fun server (host : Host) {
-    val server = ServerSocket(host.port)
-    println("Server is running on port ${server.localPort}")
+fun daemon (host : Host) {
+    val socket = ServerSocket(host.port)
+    println("Server is running on port ${socket.localPort}")
 
     while (true) {
-        val client = server.accept()
-        println("Client connected: ${client.inetAddress.hostAddress}")
-        thread { serve(client, host) }
+        val remote = socket.accept()
+        println("Client connected: ${remote.inetAddress.hostAddress}")
+        thread { handle(remote, host) }
     }
 
 }
 
 // SERVE
 
-fun serve (remote: Socket, local: Host) {
+fun handle (remote: Socket, local: Host) {
     val reader = DataInputStream(remote.getInputStream()!!)
     val writer = DataOutputStream(remote.getOutputStream()!!)
 
@@ -65,7 +65,7 @@ fun serve (remote: Socket, local: Host) {
     assert(header.F.toChar() == 'F' && header.C.toChar() == 'C') { "invalid header signature" }
     //println("Type: 0x${header.type.toString(16)}")
 
-    fun serve_1000 () {
+    fun recv_1000 () {
         val n2 = reader.readShort()
         val chain_ = reader.readNBytes(n2.toInt()).toChainNZ()
         val chain = Chain_load(local.path, chain_.name,chain_.zeros)
@@ -130,12 +130,12 @@ fun serve (remote: Socket, local: Host) {
     }
 
     when (header.type) {
-        0x1000.toShort() -> serve_1000()
+        0x1000.toShort() -> recv_1000()
         else -> error("invalid header type")
     }
 }
 
-fun client_1000 (remote: Socket, chain: Chain) {
+fun send_1000 (remote: Socket, chain: Chain) {
     val reader = DataInputStream(remote.getInputStream()!!)
     val writer = DataOutputStream(remote.getOutputStream()!!)
 
@@ -175,7 +175,7 @@ fun client_1000 (remote: Socket, chain: Chain) {
                 if (ret4 == 1.toByte()) {    // remote needs back
                     val n5 = reader.readByte()
                     val hh5 = reader.readNBytes(n5.toInt()).toProtoNodeHH()
-                    println("[client]: server wants ${hh5.toNodeHH().hash}")
+                    println("[client] server wants ${hh5.toNodeHH().hash}")
                     send(hh5.toNodeHH())
                 }
             }
