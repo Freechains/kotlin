@@ -91,27 +91,36 @@ class Handler (host: Host, client: Socket) {
             } else {
                 writer.writeByte(0)     // no, send me it complete
 
-                val n = reader.readInt()
-                val node = reader.readNBytes(n).protobufToNode()
-                println(node)
-                //node.nonce += 1
-                node.recheck()
-                chain.saveNode(node)
+                // receive this and all recursive backs
+                fun receive () {
+                    val n = reader.readInt()
+                    val node = reader.readNBytes(n).protobufToNode()
+                    println(node)
+                    //node.nonce += 1
+                    node.recheck()
+                    chain.saveNode(node)
 
-                // check backs from received node
-                /*
-                for (hh in node.backs) {
-                    if (!chain.containsNode(hh)) {
-                        writer.writeByte(1)
+                    // check backs from received node
+                    for (hh in node.backs) {
+                        if (!chain.containsNode(hh)) {
+                            writer.writeByte(1)
 
-                        // send request for this back
-                        val bytes = ProtoBuf.dump(Proto_Node_HH.serializer(), hh.toProtoHH())
-                        assert(bytes.size <= Byte.MAX_VALUE)
-                        writer.writeByte(bytes.size)
-                        writer.write(bytes)
+                            // send request for this back
+                            val bytes = ProtoBuf.dump(Proto_Node_HH.serializer(), hh.toProtoHH())
+                            assert(bytes.size <= Byte.MAX_VALUE)
+                            writer.writeByte(bytes.size)
+                            writer.write(bytes)
+
+                            receive()
+                        }
                     }
                 }
-                 */
+                receive()
+
+                //chain.heads.??                // TODO: add this node to heads
+                // TODO: caution: save node in FS but backs are not still received, connection might break
+                // TODO: change heads to LIST
+
                 writer.writeByte(0)     // I have it all!
             }
 

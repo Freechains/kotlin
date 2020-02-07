@@ -20,7 +20,7 @@ data class Chain (
     val zeros : Byte
 ) {
     val hash  : String = this.toHash()
-    var heads : Array<Node_HH> = arrayOf(this.toGenHH())
+    val heads : ArrayList<Node_HH> = arrayListOf(this.toGenHH())
 }
 
 // JSON
@@ -50,10 +50,11 @@ fun Chain.publish (payload: String) : Node {
 }
 
 fun Chain.publish (payload: String, time: Long) : Node {
-    val node = Node(time, 0, payload, this.heads)
+    val node = Node(time, 0, payload, this.heads.toTypedArray())
     node.setNonceHashWithZeros(this.zeros)
     this.saveNode(node)
-    this.heads = arrayOf(node.toNodeHH())
+    this.heads.clear()
+    this.heads.add(node.toNodeHH())
     this.save()
     return node
 }

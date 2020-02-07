@@ -181,14 +181,16 @@ class Tests {
         b1.setNonceHashWithZeros(0)
         chain.saveNode(a1)
         chain.saveNode(b1)
-        chain.heads = arrayOf(a1.toNodeHH(), b1.toNodeHH())
+        chain.heads.clear()
+        chain.heads.add(a1.toNodeHH())
+        chain.heads.add(b1.toNodeHH())
 
         val ab2 = chain.publish("ab2", 0)
 
         val b2 = Node(0,0,"b2", arrayOf(b1.toNodeHH()))
         b2.setNonceHashWithZeros(0)
         chain.saveNode(b2)
-        chain.heads = arrayOf(chain.heads[0], b2.toNodeHH())
+        chain.heads.add(b2.toNodeHH())
 
         val ret0 = chain.getBacksWithHeightOf(chain.heads[0],1)
         val ret1 = chain.getBacksWithHeightOf(chain.heads[1],1)
