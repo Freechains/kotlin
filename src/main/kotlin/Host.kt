@@ -26,6 +26,22 @@ fun String.fromJsonToHost () : Host {
     return json.parse(Host.serializer(), this)
 }
 
+// CHAIN
+
+fun Host.createChain (name: String, zeros: Byte) : Chain {
+    val chain = Chain(this.path,name,zeros)
+    val file = File(this.path + "/chains/" + chain.toPath() + ".chain")
+    if (!file.exists()) {
+        chain.save()
+    }
+    return file.readText().fromJsonToChain()
+}
+
+fun Host.loadChain (name: String, zeros: Byte) : Chain {
+    val file = File(this.path + "/chains/" + name + "/" + zeros + ".chain")
+    return file.readText().fromJsonToChain()
+}
+
 // FILE SYSTEM
 
 fun Host.save () {

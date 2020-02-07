@@ -70,7 +70,7 @@ fun handle (server: ServerSocket, remote: Socket, local: Host) {
         // receive chain
         val n2 = reader.readShort()
         val chain_ = reader.readNBytes(n2.toInt()).toChainNZ()
-        val chain = Chain_load(local.path, chain_.name,chain_.zeros)
+        val chain = local.loadChain(chain_.name,chain_.zeros)
         println("[recv] chain: $chain")
 
         val toRecv : Stack<Node_HH> = Stack()

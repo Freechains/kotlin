@@ -97,26 +97,12 @@ private fun Chain.toByteArray () : ByteArray {
 
 // FILE SYSTEM
 
-fun Chain_create (path: String, name: String, zeros: Byte) : Chain {
-    val chain = Chain(path,name,zeros)
-    val file = File(path + "/chains/" + chain.toPath() + ".chain")
-    if (!file.exists()) {
-        chain.save()
-    }
-    return file.readText().fromJsonToChain()
-}
-
 fun Chain.save () {
     val dir = File(this.path + "/chains/" + this.toPath())
     if (!dir.exists()) {
         dir.mkdirs()
     }
     File(this.path + "/chains/" + this.toPath() + ".chain").writeText(this.toJson())
-}
-
-fun Chain_load (path: String, name: String, zeros: Byte) : Chain {
-    val file = File(path + "/chains/" + name + "/" + zeros + ".chain")
-    return file.readText().fromJsonToChain()
 }
 
 // NDOE
