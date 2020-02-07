@@ -6,6 +6,7 @@ import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.ServerSocket
 import java.net.Socket
+import java.net.SocketException
 import java.util.*
 import kotlin.concurrent.thread
 
@@ -44,12 +45,17 @@ fun ByteArray.toProtoNodeHH (): Proto_Node_HH {
 
 fun daemon (host : Host) {
     val socket = ServerSocket(host.port)
-    println("Server is running on port ${socket.localPort}")
+    println("Host is up: $host")
 
     while (true) {
-        val remote = socket.accept()
-        println("Client connected: ${remote.inetAddress.hostAddress}")
-        thread { handle(socket, remote, host) }
+        try {
+            val remote = socket.accept()
+            println("Client connected: ${remote.inetAddress.hostAddress}")
+            thread { handle(socket, remote, host) }
+        } catch (e: SocketException) {
+            assert(e.message == "Socket closed")
+            break
+        }
     }
 }
 
@@ -114,7 +120,7 @@ fun handle (server: ServerSocket, remote: Socket, local: Host) {
     }
 
     when (header.type) {
-        0x0000.toShort() -> server.close()
+        0x0000.toShort() -> { println("Host is down.") ; server.close() }
         0x1000.toShort() -> recv_1000()
         else -> error("invalid header type")
     }

@@ -168,7 +168,7 @@ class Tests {
 
     @Test
     fun f1_peers () {
-        a_reset()
+        //a_reset()
 
         val h1 = Host_create("tests/h1/", 8330)
         val h1_chain = h1.createChain("/xxx", 0)
@@ -188,5 +188,16 @@ class Tests {
         val socket = Socket("127.0.0.1", h1.port)
         socket.send_1000(h2_chain)
         socket.close()
+    }
+
+    @Test
+    fun m1_args () {
+        a_reset()
+        main(arrayOf("freechains","host","create","tests/local/","8330"))
+        thread {
+            Thread.sleep(100)
+            main(arrayOf("freechains","host","stop","tests/local/"))
+        }
+        main(arrayOf("freechains","host","start","tests/local/"))
     }
 }
