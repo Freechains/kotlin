@@ -53,10 +53,16 @@ fun Chain.publish (payload: String, time: Long) : Node {
     val node = Node(time, 0, payload, this.heads.toTypedArray())
     node.setNonceHashWithZeros(this.zeros)
     this.saveNode(node)
-    this.heads.clear()
-    this.heads.add(node.toNodeHH())
+    this.reheads(node)
     this.save()
     return node
+}
+
+fun Chain.reheads (node: Node) {
+    this.heads.add(node.toNodeHH())
+    for (hh in node.backs) {
+        this.heads.remove(hh)
+    }
 }
 
 // GENESIS

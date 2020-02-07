@@ -6,6 +6,7 @@ import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.ServerSocket
 import java.net.Socket
+import java.util.*
 import kotlin.concurrent.thread
 
 @Serializable
@@ -65,66 +66,48 @@ fun handle (server: ServerSocket, remote: Socket, local: Host) {
     //println("Type: 0x${header.type.toString(16)}")
 
     fun recv_1000 () {
+
+        // receive chain
         val n2 = reader.readShort()
         val chain_ = reader.readNBytes(n2.toInt()).toChainNZ()
         val chain = Chain_load(local.path, chain_.name,chain_.zeros)
-        println("[server] chain: $chain")
+        println("[recv] chain: $chain")
+
+        val toRecv : Stack<Node_HH> = Stack()
 
         // receive all heads
         while (true) {
             val n3 = reader.readByte()
-            val hh3 = reader.readNBytes(n3.toInt()).toProtoNodeHH()
-            println("[server] head: ${hh3.toNodeHH()}")
+            println("[recv] bytes: $n3")
+            if (n3 == 0.toByte()) {
+                break      // no more nodes to receive
+            }
+
+            val phh = reader.readNBytes(n3.toInt()).toProtoNodeHH()
+            val hh = phh.toNodeHH()
+            println("[recv] toRecv? $hh")
 
             // do I need this head?
-            if (chain.containsNode(hh3.toNodeHH())) {
-                println("[server] dont need")
-                writer.writeByte(0)     // no, send me next or stop
+            if (chain.containsNode(hh)) {
+                //println("[server] dont need")
+                writer.writeByte(0)     // no
             } else {
-                writer.writeByte(1)     // yes, send me it complete
-
-                // receive this and all recursive backs
-                fun receive () : Node {
-                    val n4 = reader.readInt()
-                    val node = reader.readNBytes(n4).protobufToNode()
-                    println("[server] node: $node")
-                    node.recheck()
-                    chain.saveNode(node)
-
-                    // check backs from received node
-                    for (hh4 in node.backs) {
-                        if (chain.containsNode(hh4)) {
-                            chain.heads.remove(hh4)     // if child is a head, remove it!
-                        } else {
-                            println("[server] ask: ${hh4.hash} from ${node.hash}")
-                            // send request for this back which I don't have
-                            writer.writeByte(1)         // request a child
-                            val bytes = ProtoBuf.dump(Proto_Node_HH.serializer(), hh4.toProtoHH())
-                            assert(bytes.size <= Byte.MAX_VALUE)
-                            writer.writeByte(bytes.size)
-                            writer.write(bytes)
-
-                            receive()
-                        }
-                    }
-                    writer.writeByte(0)   // no more childs
-                    return node
-                }
-                val head = receive()
-                chain.heads.add(head.toNodeHH())
-                chain.save()
-
-                // TODO: caution: save node in FS but backs are not still received, connection might break
-
-                writer.writeByte(0)     // I have it all!
+                writer.writeByte(1)     // yes
+                toRecv.push(hh)
             }
+        }
 
-            // has more heads?
-            val more = reader.readByte()
-            if (more.toInt() == 0) {
-                println("[server] disconnected")
-                break       // no: disconnect
-            }
+        val tot = reader.readShort()
+        assert(tot == toRecv.size.toShort()) { "unexpected number of nodes to receive" }
+
+        for (hh in toRecv) {
+            val n = reader.readInt()
+            val node = reader.readNBytes(n).protobufToNode()
+            assert(node.hash == hh.hash) { "unexpected hash of node received" }
+            println("[server] node: $node")
+            node.recheck()
+            chain.saveNode(node)
+            chain.save()
         }
     }
 
@@ -160,41 +143,57 @@ fun Socket.send_1000 (chain: Chain) {
     assert(bytes2.size <= Short.MAX_VALUE)
     writer.writeShort(bytes2.size)
     writer.write(bytes2)
+    println("[send] chain: $chain")
 
-    // HEADS
-    for (hh2 in chain.heads) {
-        // send head HH
-        val bytes3 = ProtoBuf.dump(Proto_Node_HH.serializer(), hh2.toProtoHH())
-        assert(bytes3.size <= Byte.MAX_VALUE)
-        writer.writeByte(bytes3.size)
-        writer.write(bytes3)
+    val toSend : Stack<Node_HH> = Stack()
+    val visited = mutableSetOf<Node_HH>()
 
-        val ret3 = reader.readByte()
-        if (ret3 == 1.toByte()) {    // remote needs it
-            fun send (hh: Node_HH) {
-                // send complete head node
-                val node4 = chain.loadNodeFromHH(hh)
-                val bytes4 = ProtoBuf.dump(Node.serializer(), node4)
-                assert(bytes4.size <= Int.MAX_VALUE)
-                writer.writeInt(bytes4.size)
-                writer.write(bytes4)
-
-                // receive backs remote needs
-                val ret4 = reader.readByte()
-                if (ret4 == 1.toByte()) {    // remote needs back
-                    val n5 = reader.readByte()
-                    val hh5 = reader.readNBytes(n5.toInt()).toProtoNodeHH()
-                    println("[client] server wants ${hh5.toNodeHH().hash}")
-                    send(hh5.toNodeHH())
-                }
-            }
-            send(hh2)
+    fun send_rec (hh: Node_HH) {
+        println("[send] $hh")
+        if (visited.contains(hh)) {
+            return
+        } else {
+            visited.add(hh)
         }
 
-        // one more head
-        writer.writeByte(1)
+        // transmit HH
+        val bytes = ProtoBuf.dump(Proto_Node_HH.serializer(), hh.toProtoHH())
+        assert(bytes.size <= Byte.MAX_VALUE)
+        writer.writeByte(bytes.size)
+        writer.write(bytes)
+
+        // receive response (needs or not)
+        val ret = reader.readByte()
+        if (ret == 0.toByte()) {
+            return      // don't need it, nothing else to receive here
+        }
+        toSend.push(hh) // need it, add and proceed to backs
+
+        // transmit backs
+        val node = chain.loadNodeFromHH(hh)
+        for (hh_back in node.backs) {
+            if (hh_back != chain.toGenHH()) {
+                send_rec(hh_back)
+            }
+        }
     }
 
-    // no more heads
-    writer.writeByte(0)
+    // send heads recursively
+    for (hh in chain.heads) {
+        send_rec(hh)
+    }
+    writer.writeByte(0)     // no more nodes to send
+
+    // send number of nodes to be sent (just to confirm)
+    assert(toSend.size <= Short.MAX_VALUE) { "too many nodes to send" }
+    writer.writeShort(toSend.size)
+
+    // send nodes in reverse order
+    for (hh in toSend) {
+        val node = chain.loadNodeFromHH(hh)
+        val bytes = ProtoBuf.dump(Node.serializer(), node)
+        assert(bytes.size <= Int.MAX_VALUE)
+        writer.writeInt(bytes.size)
+        writer.write(bytes)
+    }
 }

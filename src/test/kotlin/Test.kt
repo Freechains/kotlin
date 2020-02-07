@@ -30,6 +30,7 @@ class Tests {
 
     @Test
     fun b1_chain () {
+        Host_create("tests/local/")
         val chain1 = Chain("tests/local/", "/uerj", 0)
         //println("Chain /uerj/0: ${chain1.toHash()}")
         chain1.save()
@@ -90,110 +91,9 @@ class Tests {
     }
 
     @Test
-    fun d2_net () {
-        // LOCAL
-        val local = Host("tests/local/", 8330)
-        local.save()
-        val tmp = Host_load("tests/local/")
-        assert(tmp == local)
-        thread { daemon(local) }
-        Thread.sleep(100)
-
-        // REMOTE
-        val remote = Host_create("tests/remote/")
-        val chain = Chain_create(remote.path, "/ceu", 10)
-        val node1 = chain.publish("remote1", 0)
-        val node2 = chain.publish("remote2", 0)
-
-        // LOCAL
-        val client = Socket("127.0.0.1", local.port)
-        val reader = DataInputStream(client.getInputStream())
-        val writer = DataOutputStream(client.getOutputStream())
-
-        // HEADER
-        if (true) {
-            val header = Proto_Header('F'.toByte(), 'C'.toByte(), 0x1000)
-            val bytes = ProtoBuf.dump(Proto_Header.serializer(), header)
-            assert(bytes.size <= Byte.MAX_VALUE)
-            writer.writeByte(bytes.size)
-            writer.write(bytes)
-        }
-
-        // CHAIN
-        if (true) {
-            val bytes = ProtoBuf.dump(Chain_NZ.serializer(), chain.toChainNZ())
-            assert(bytes.size <= Short.MAX_VALUE)
-            writer.writeShort(bytes.size)
-            writer.write(bytes)
-        }
-
-        // HEIGHT_HASH
-        if (true) {
-            val hh = Proto_Node_HH(10, "000d621b455be6f7a441dc662b7506a0ecd85ab835853c2528ab5f212d61b5c7".hashToByteArray())
-            val bytes = ProtoBuf.dump(Proto_Node_HH.serializer(), hh)
-            //println("${bytes.size} : $bytes")
-            assert(bytes.size <= Byte.MAX_VALUE)
-            writer.writeByte(bytes.size)
-            writer.write(bytes)
-            val ret = reader.readByte()
-            assert(ret == 0.toByte())   // 0 = don't need
-        }
-
-        // one more head
-        writer.writeByte(1)
-
-        // HEIGHT_HASH
-        if (true) {
-            if (true) {
-                val bytes = ProtoBuf.dump(Proto_Node_HH.serializer(), node2.toProtoHH())
-                //println("${bytes.size} : $bytes")
-                assert(bytes.size <= Byte.MAX_VALUE)
-                writer.writeByte(bytes.size)
-                writer.write(bytes)
-                val ret = reader.readByte()
-                assert(ret == 1.toByte())   // 1 = need it
-            }
-
-            // NODE
-            if (true) {
-                val bytes = ProtoBuf.dump(Node.serializer(), node2)
-                assert(bytes.size <= Int.MAX_VALUE)
-                writer.writeInt(bytes.size)
-                writer.write(bytes)
-                //println(node2)
-            }
-        }
-
-        // CHILD_NODE
-        if (true) {
-            val ret = reader.readByte()
-            assert(ret == 1.toByte())   // 1 = need child
-            val n = reader.readByte()
-            val hh = reader.readNBytes(n.toInt()).toProtoNodeHH()
-            //println("server wants child: ${hh.toNodeHH()}")
-            assert(hh.toNodeHH().hash == "003b3323a89782261b42ac8aeb3d82e3b73ff216a9b0eecedd019278c79b8713")
-
-            val bytes = ProtoBuf.dump(Node.serializer(), node1)
-            assert(bytes.size <= Int.MAX_VALUE)
-            writer.writeInt(bytes.size)
-            writer.write(bytes)
-            //println(node1)
-        }
-
-        // no more heads
-        writer.writeByte(0)
-
-        // TODO: testar chains e nodes que nao existam
-
-        Thread.sleep(100)
-        client.close()
-        println("[client] terminated")
-    }
-
-    @Test
     fun d3_proto () {
         // REMOTE
-        val remote = Host_load("tests/remote/")
+        val remote = Host_create("tests/remote/")
         val remote_chain = Chain_create(remote.path, "/d3", 5)
         remote_chain.publish("aaa", 0)
         remote_chain.publish("bbb", 0)
@@ -201,8 +101,8 @@ class Tests {
         // LOCAL
         val local = Host_load("tests/local/")
         Chain_create(local.path, "/d3", 5)
-        //thread { server(local) }
-        //Thread.sleep(100)
+        thread { daemon(local) }
+        Thread.sleep(100)
 
         val s1 = Socket("127.0.0.1", local.port)
         s1.send_1000(remote_chain)
@@ -225,9 +125,8 @@ class Tests {
         b1.setNonceHashWithZeros(0)
         chain.saveNode(a1)
         chain.saveNode(b1)
-        chain.heads.clear()
-        chain.heads.add(a1.toNodeHH())
-        chain.heads.add(b1.toNodeHH())
+        chain.reheads(a1)
+        chain.reheads(b1)
 
         //val ab2 =
         chain.publish("ab2", 0)
@@ -235,7 +134,7 @@ class Tests {
         val b2 = Node(0,0,"b2", arrayOf(b1.toNodeHH()))
         b2.setNonceHashWithZeros(0)
         chain.saveNode(b2)
-        chain.heads.add(b2.toNodeHH())
+        chain.reheads(b2)
 
         val ret0 = chain.getBacksWithHeightOf(chain.heads[0],1)
         val ret1 = chain.getBacksWithHeightOf(chain.heads[1],1)
