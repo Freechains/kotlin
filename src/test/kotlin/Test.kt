@@ -10,8 +10,12 @@ import kotlin.concurrent.thread
 import kotlinx.serialization.protobuf.ProtoBuf
 
 import freechains.*
-import java.io.DataInputStream
-import java.io.DataOutputStream
+
+/*
+ *  TODO: command-line daemon / client
+ *  TODO: chain locks
+ *  TODO: peer/chain configurations in host
+ */
 
 @TestMethodOrder(Alphanumeric::class)
 class Tests {

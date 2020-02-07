@@ -13,6 +13,8 @@ repositories {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.14.0" // JVM dependency
+    implementation "com.offbytwo:docopt:0.6.0.20150202"
+    //implementation "com.github.holgerbrandl:kscript:1.2.2"
 
     testImplementation(
             'org.assertj:assertj-core:3.12.2',
