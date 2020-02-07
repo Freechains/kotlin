@@ -92,20 +92,22 @@ class Tests {
 
     @Test
     fun d2_net () {
-        val host = Host("local/", 8330)
-        host.save()
+        // LOCAL
+        val local = Host("local/", 8330)
+        local.save()
         val tmp = Host_load("local/")
-        assert(tmp == host)
-
-        thread { server(host) }
+        assert(tmp == local)
+        thread { server(local) }
         Thread.sleep(100)
 
         // REMOTE
         val remote = Host("remote/", 8331)
         val chain = Chain_create(remote.path, "/ceu", 10)
-        val node = chain.publish("remote", 0)
+        val node1 = chain.publish("remote1", 0)
+        val node2 = chain.publish("remote2", 0)
 
-        val client = Socket("127.0.0.1", host.port)
+        // LOCAL
+        val client = Socket("127.0.0.1", local.port)
         val reader = DataInputStream(client.getInputStream())
         val writer = DataOutputStream(client.getOutputStream())
 
@@ -135,7 +137,7 @@ class Tests {
             writer.writeByte(bytes.size)
             writer.write(bytes)
             val ret = reader.readByte()
-            assert(ret == 1.toByte())
+            assert(ret == 0.toByte())   // 0 = don't need
         }
 
         // one more head
@@ -143,22 +145,40 @@ class Tests {
 
         // HEIGHT_HASH
         if (true) {
-            val bytes = ProtoBuf.dump(Proto_Node_HH.serializer(), node.toProtoHH())
-            //println("${bytes.size} : $bytes")
-            assert(bytes.size <= Byte.MAX_VALUE)
-            writer.writeByte(bytes.size)
-            writer.write(bytes)
-            val ret = reader.readByte()
-            assert(ret == 0.toByte())
+            if (true) {
+                val bytes = ProtoBuf.dump(Proto_Node_HH.serializer(), node2.toProtoHH())
+                //println("${bytes.size} : $bytes")
+                assert(bytes.size <= Byte.MAX_VALUE)
+                writer.writeByte(bytes.size)
+                writer.write(bytes)
+                val ret = reader.readByte()
+                assert(ret == 1.toByte())   // 1 = need it
+            }
 
             // NODE
             if (true) {
-                val bytes = ProtoBuf.dump(Node.serializer(), node)
+                val bytes = ProtoBuf.dump(Node.serializer(), node2)
                 assert(bytes.size <= Int.MAX_VALUE)
                 writer.writeInt(bytes.size)
                 writer.write(bytes)
-                println(node)
+                //println(node2)
             }
+        }
+
+        // CHILD_NODE
+        if (true) {
+            val ret = reader.readByte()
+            assert(ret == 1.toByte())   // 1 = need child
+            val n = reader.readByte()
+            val hh = reader.readNBytes(n.toInt()).toProtoNodeHH()
+            //println("server wants child: ${hh.toNodeHH()}")
+            assert(hh.toNodeHH().hash == "003b3323a89782261b42ac8aeb3d82e3b73ff216a9b0eecedd019278c79b8713")
+
+            val bytes = ProtoBuf.dump(Node.serializer(), node1)
+            assert(bytes.size <= Int.MAX_VALUE)
+            writer.writeInt(bytes.size)
+            writer.write(bytes)
+            //println(node1)
         }
 
         // no more heads
@@ -185,7 +205,8 @@ class Tests {
         chain.heads.add(a1.toNodeHH())
         chain.heads.add(b1.toNodeHH())
 
-        val ab2 = chain.publish("ab2", 0)
+        //val ab2 =
+        chain.publish("ab2", 0)
 
         val b2 = Node(0,0,"b2", arrayOf(b1.toNodeHH()))
         b2.setNonceHashWithZeros(0)
@@ -199,7 +220,8 @@ class Tests {
         assert(ret0.toString() == "[fdce30159fa932f438704eb7a646d5ed51938ea3bd8f928318f3e29a59403d54, ce274de26ef001a02cbe3f4d3adf360831fd1a27886cc55429fac0034daa4edc]")
         assert(ret1.toString() == "[ce274de26ef001a02cbe3f4d3adf360831fd1a27886cc55429fac0034daa4edc]")
 
-        val ab3 = chain.publish("ab3", 0)
+        //val ab3 =
+        chain.publish("ab3", 0)
         val ret3 = chain.getBacksWithHeightOf(chain.heads[0],1)
         val ret4 = chain.getBacksWithHeightOf(chain.heads[0],2)
         //println(ret3)
