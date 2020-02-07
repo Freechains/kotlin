@@ -100,12 +100,14 @@ fun handle (server: ServerSocket, remote: Socket, local: Host) {
         val tot = reader.readShort()
         assert(tot == toRecv.size.toShort()) { "unexpected number of nodes to receive" }
 
-        for (hh in toRecv) {
+        while (toRecv.isNotEmpty()) {
+            val hh = toRecv.pop()
             val n = reader.readInt()
             val node = reader.readNBytes(n).protobufToNode()
             assert(node.hash == hh.hash) { "unexpected hash of node received" }
             println("[server] node: $node")
             node.recheck()
+            chain.reheads(node)
             chain.saveNode(node)
             chain.save()
         }
@@ -167,6 +169,7 @@ fun Socket.send_1000 (chain: Chain) {
         if (ret == 0.toByte()) {
             return      // don't need it, nothing else to receive here
         }
+        println("[send] toSend: $hh")
         toSend.push(hh) // need it, add and proceed to backs
 
         // transmit backs
@@ -189,7 +192,10 @@ fun Socket.send_1000 (chain: Chain) {
     writer.writeShort(toSend.size)
 
     // send nodes in reverse order
-    for (hh in toSend) {
+    while (toSend.isNotEmpty()) {
+        val hh = toSend.pop()
+        println("[send] send: $hh")
+
         val node = chain.loadNodeFromHH(hh)
         val bytes = ProtoBuf.dump(Node.serializer(), node)
         assert(bytes.size <= Int.MAX_VALUE)
