@@ -48,14 +48,13 @@ fun daemon (host : Host) {
     while (true) {
         val remote = socket.accept()
         println("Client connected: ${remote.inetAddress.hostAddress}")
-        thread { handle(remote, host) }
+        thread { handle(socket, remote, host) }
     }
-
 }
 
 // SERVE
 
-fun handle (remote: Socket, local: Host) {
+fun handle (server: ServerSocket, remote: Socket, local: Host) {
     val reader = DataInputStream(remote.getInputStream()!!)
     val writer = DataOutputStream(remote.getOutputStream()!!)
 
@@ -130,14 +129,24 @@ fun handle (remote: Socket, local: Host) {
     }
 
     when (header.type) {
+        0x0000.toShort() -> server.close()
         0x1000.toShort() -> recv_1000()
         else -> error("invalid header type")
     }
 }
 
-fun send_1000 (remote: Socket, chain: Chain) {
-    val reader = DataInputStream(remote.getInputStream()!!)
-    val writer = DataOutputStream(remote.getOutputStream()!!)
+fun Socket.send_0000 () {
+    val writer = DataOutputStream(this.getOutputStream()!!)
+    val header = Proto_Header('F'.toByte(), 'C'.toByte(), 0x0000)
+    val bytes = ProtoBuf.dump(Proto_Header.serializer(), header)
+    assert(bytes.size <= Byte.MAX_VALUE)
+    writer.writeByte(bytes.size)
+    writer.write(bytes)
+}
+
+fun Socket.send_1000 (chain: Chain) {
+    val reader = DataInputStream(this.getInputStream()!!)
+    val writer = DataOutputStream(this.getOutputStream()!!)
 
     // send header
     val header = Proto_Header('F'.toByte(), 'C'.toByte(), 0x1000)

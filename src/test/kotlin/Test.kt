@@ -204,9 +204,15 @@ class Tests {
         //thread { server(local) }
         //Thread.sleep(100)
 
-        val socket = Socket("127.0.0.1", local.port)
-        send_1000(socket, remote_chain)
-        socket.close()
+        val s1 = Socket("127.0.0.1", local.port)
+        s1.send_1000(remote_chain)
+        Thread.sleep(100)
+        s1.close()
+
+        val s2 = Socket("127.0.0.1", local.port)
+        s2.send_0000()
+        Thread.sleep(100)
+        s2.close()
     }
 
     @Test
@@ -257,10 +263,23 @@ class Tests {
 
     @Test
     fun f1_peers () {
-        val h1 = Host_create("tests/h1/")
-        val h1_chain = Chain_create(h1.path, "/d3", 5)
+        val h1 = Host_create("tests/h1/", 8330)
+        val h1_chain = Chain_create(h1.path, "/xxx", 0)
         h1_chain.publish("h1_1", 0)
         h1_chain.publish("h1_2", 0)
 
+        val h2 = Host_create("tests/h2/", 8331)
+        val h2_chain = Chain_create(h1.path, "/xxx", 0)
+        h2_chain.publish("h2_1", 0)
+        h2_chain.publish("h2_2", 0)
+
+        Thread.sleep(100)
+        thread { daemon(h1) }
+        thread { daemon(h2) }
+        Thread.sleep(100)
+
+        val socket = Socket("127.0.0.1", h1.port)
+        socket.send_1000(h2_chain)
+        socket.close()
     }
 }
