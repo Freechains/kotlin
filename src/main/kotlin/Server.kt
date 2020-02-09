@@ -1,4 +1,4 @@
-package freechains
+package org.freechains.kotlin
 
 import java.io.DataInputStream
 import java.io.DataOutputStream
@@ -99,7 +99,7 @@ fun handle (server: ServerSocket, remote: Socket, local: Host) {
     fun recv_3000 () {
         try {
             val n = reader.readInt()
-            val put = reader.readNBytes(n.toInt()).toProtoPut()
+            val put = reader.readNBytes(n).toProtoPut()
             val chain = local.loadChain(put.nw)
             chain.publish(put.pay.toString(Charsets.UTF_8))
             writer.writeBoolean(true)

@@ -1,4 +1,4 @@
-package freechains
+package org.freechains.kotlin
 
 import kotlinx.serialization.protobuf.ProtoBuf
 import java.io.DataInputStream

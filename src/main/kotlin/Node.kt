@@ -1,4 +1,4 @@
-package freechains
+package org.freechains.kotlin
 
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
@@ -27,13 +27,13 @@ data class Node (
 // JSON
 
 fun Node.toJson (): String {
-    @UnstableDefault
+    @UseExperimental(UnstableDefault::class)
     val json = Json(JsonConfiguration(prettyPrint=true))
     return json.stringify(Node.serializer(), this)
 }
 
 fun String.jsonToNode (): Node {
-    @UnstableDefault
+    @UseExperimental(UnstableDefault::class)
     val json = Json(JsonConfiguration(prettyPrint=true))
     return json.parse(Node.serializer(), this)
 }

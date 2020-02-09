@@ -1,6 +1,6 @@
-package freechains.client
+package org.freechains.kotlin.client
 
-import freechains.*
+import org.freechains.kotlin.*
 import org.docopt.Docopt
 import java.io.File
 import java.net.Socket
@@ -49,10 +49,10 @@ fun cmd_put (name_work: String, payload: ByteArray, opt_host: String?) : Int {
     return 0
 }
 
-fun main (args: Array<String>) : Int {
+fun main (args: Array<String>) {
     val opts = Docopt(doc).withVersion("freechains-client v0.2").parse(args.toMutableList())
     println(opts)
-    return when {
+    val ret = when {
         opts["get"] as Boolean -> cmd_get(opts["<chain/work>"] as String, opts["<height/hash>"] as String, opts["--host"] as String?)
         opts["put"] as Boolean -> {
             val payload: ByteArray =
@@ -65,4 +65,5 @@ fun main (args: Array<String>) : Int {
         }
         else -> -1
     }
+    System.err.println("system return: $ret")
 }

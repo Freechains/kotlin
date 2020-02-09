@@ -1,4 +1,4 @@
-package freechains
+package org.freechains.kotlin
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UnstableDefault
@@ -15,13 +15,13 @@ data class Host (
 // JSON
 
 fun Host.toJson () : String {
-    @UnstableDefault
+    @UseExperimental(UnstableDefault::class)
     val json = Json(JsonConfiguration(prettyPrint=true))
     return json.stringify(Host.serializer(), this)
 }
 
 fun String.fromJsonToHost () : Host {
-    @UnstableDefault
+    @UseExperimental(UnstableDefault::class)
     val json = Json(JsonConfiguration(prettyPrint=true))
     return json.parse(Host.serializer(), this)
 }

@@ -9,14 +9,16 @@ import java.io.File
 import kotlin.concurrent.thread
 import kotlinx.serialization.protobuf.ProtoBuf
 
-import freechains.*
-import freechains.client.main as clientMain
-import freechains.server.main as serverMain
+import org.freechains.kotlin.*
+import org.freechains.kotlin.client.main as clientMain
+import org.freechains.kotlin.server.main as serverMain
 
 /*
- *  TODO: command-line daemon / client
- *  TODO: chain locks
- *  TODO: peer/chain configurations in host
+ *  TODO:
+ *  - command-line daemon / client
+ *  - chain locks
+ *  - peer/chain configurations in host
+ *  - generate executable
  */
 
 @TestMethodOrder(Alphanumeric::class)
@@ -201,7 +203,7 @@ class Tests {
         thread {
             Thread.sleep(100)
             clientMain(arrayOf("put","/xxx/0","text","aaa"))
-            //clientMain(arrayOf("put","/xxx/0","file","aaa"))
+            clientMain(arrayOf("put","/xxx/0","file","tests/local/host"))
             clientMain(arrayOf("get","--host=localhost:8330","/xxx/0", "0/826ffb4505831e6355edc141f49b1ccf5b489b9f03760f0f2fed4eeed419c6fe"))
             clientMain(arrayOf("get","/xxx/0/", "0/826ffb4505831e6355edc141f49b1ccf5b489b9f03760f0f2fed4eeed419c6fe/"))
             serverMain(arrayOf("tests/local/","stop"))

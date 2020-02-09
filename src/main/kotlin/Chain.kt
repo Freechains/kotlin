@@ -1,4 +1,4 @@
-package freechains
+package org.freechains.kotlin
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UnstableDefault
@@ -26,13 +26,13 @@ data class Chain (
 // JSON
 
 fun Chain.toJson () : String {
-    @UnstableDefault
+    @UseExperimental(UnstableDefault::class)
     val json = Json(JsonConfiguration(prettyPrint=true))
     return json.stringify(Chain.serializer(), this)
 }
 
 fun String.fromJsonToChain () : Chain {
-    @UnstableDefault
+    @UseExperimental(UnstableDefault::class)
     val json = Json(JsonConfiguration(prettyPrint=true))
     return json.parse(Chain.serializer(), this)
 }

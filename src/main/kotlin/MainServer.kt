@@ -1,6 +1,6 @@
-package freechains.server
+package org.freechains.kotlin.server
 
-import freechains.*
+import org.freechains.kotlin.*
 import org.docopt.Docopt
 import java.net.Socket
 
@@ -56,11 +56,11 @@ fun cmd_stop (dir: String) : Int {
     return 0
 }
 
-fun main (args: Array<String>) : Int {
+fun main (args: Array<String>) {
     val opts = Docopt(doc).withVersion("freechains-server v0.2").parse(args.toMutableList())
-    return when {
+    val ret = when {
         opts["chain"]  as Boolean ->
-            return when {
+            when {
                 opts["create"] as Boolean -> cmd_chain_create(opts["<dir>"] as String, opts["<chain/work>"] as String)
                 else -> -1
             }
@@ -69,4 +69,5 @@ fun main (args: Array<String>) : Int {
         opts["stop"]   as Boolean -> cmd_stop(opts["<dir>"] as String)
         else -> -1
     }
+    System.err.println("system return: $ret")
 }
