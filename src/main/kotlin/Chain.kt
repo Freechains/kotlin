@@ -44,7 +44,8 @@ fun Chain.toChainNZ () : Chain_NZ {
 }
 
 fun String.toChainNZ () : Chain_NZ {
-    val (name,work) = this.split("/")
+    val (x, name,work) = this.split("/")
+    assert(x == "/")
     return Chain_NZ(name,work.toByte())
 }
 

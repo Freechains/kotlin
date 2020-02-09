@@ -11,9 +11,9 @@ Usage:
     freechains-server <dir> create [<port>]
     freechains-server <dir> start
     freechains-server <dir> stop
-    freechains-server <dir> chain create <chain>/<work>
-    freechains-server <dir> chain broadcast <chain>/<work>
-    freechains-server <dir> chain subscribe <chain>/<work> (<address>:<port>)...
+    freechains-server <dir> chain create <chain/work>
+    freechains-server <dir> chain broadcast <chain/work>
+    freechains-server <dir> chain subscribe <chain/work> (<address>:<port>)...
 
 Options:
     --help                      display this help
@@ -36,6 +36,14 @@ fun cmd_start (dir: String) : Int {
     val host = Host_load(dir)
     println("Starting host: $host")
     daemon(host)
+    return 0
+}
+
+fun cmd_chain_create (dir: String, chain_work: String) : Int {
+    val host = Host_load(dir)
+    val nw = chain_work.toChainNZ()
+    val chain = host.createChain(nw)
+    println("Creating chain: $chain")
     return 0
 }
 

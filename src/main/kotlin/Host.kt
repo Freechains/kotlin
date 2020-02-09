@@ -31,10 +31,13 @@ fun String.fromJsonToHost () : Host {
 fun Host.createChain (name: String, work: Byte) : Chain {
     val chain = Chain(this.path,name,work)
     val file = File(this.path + "/chains/" + chain.toPath() + ".chain")
-    if (!file.exists()) {
-        chain.save()
-    }
+    assert(!file.exists()) { "chain already exists: $chain"}
+    chain.save()
     return file.readText().fromJsonToChain()
+}
+
+fun Host.createChain (nw: Chain_NZ) : Chain {
+    return this.createChain(nw.name,nw.work)
 }
 
 fun Host.loadChain (name: String, work: Byte) : Chain {
