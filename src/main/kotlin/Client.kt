@@ -40,6 +40,25 @@ fun Socket.send_2000 (chain: Chain_NW, node: Node_HH): String? {
     }
 }
 
+fun Socket.send_3000 (chain: Chain_NW, payload: ByteArray): Boolean {
+    val reader = DataInputStream(this.getInputStream()!!)
+    val writer = DataOutputStream(this.getOutputStream()!!)
+
+    val header = Proto_Header('F'.toByte(), 'C'.toByte(), 0x3000)
+    val bytes1 = ProtoBuf.dump(Proto_Header.serializer(), header)
+    assert(bytes1.size <= Byte.MAX_VALUE)
+    writer.writeByte(bytes1.size)
+    writer.write(bytes1)
+
+    val get = Proto_Put(chain, payload)
+    val bytes2 = ProtoBuf.dump(Proto_Put.serializer(), get)
+    assert(bytes2.size <= Int.MAX_VALUE)
+    writer.writeInt(bytes2.size)
+    writer.write(bytes2)
+
+    return reader.readBoolean()
+}
+
 fun Socket.send_1000 (chain: Chain) {
     val reader = DataInputStream(this.getInputStream()!!)
     val writer = DataOutputStream(this.getOutputStream()!!)

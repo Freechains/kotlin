@@ -200,6 +200,8 @@ class Tests {
         serverMain(arrayOf("tests/8331/","create","8331"))
         thread {
             Thread.sleep(100)
+            clientMain(arrayOf("put","/xxx/0","text","aaa"))
+            //clientMain(arrayOf("put","/xxx/0","file","aaa"))
             clientMain(arrayOf("get","--host=localhost:8330","/xxx/0", "0/826ffb4505831e6355edc141f49b1ccf5b489b9f03760f0f2fed4eeed419c6fe"))
             clientMain(arrayOf("get","/xxx/0/", "0/826ffb4505831e6355edc141f49b1ccf5b489b9f03760f0f2fed4eeed419c6fe/"))
             serverMain(arrayOf("tests/local/","stop"))

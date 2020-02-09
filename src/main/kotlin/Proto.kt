@@ -22,6 +22,12 @@ data class Proto_Get (
     val hh: Node_HH
 )
 
+@Serializable
+data class Proto_Put (
+    val nw:  Chain_NW,
+    val pay: ByteArray
+)
+
 // CONVERSIONS
 
 fun Proto_Node_HH.toNodeHH () : Node_HH {
@@ -42,4 +48,8 @@ fun ByteArray.toProtoNodeHH () : Proto_Node_HH {
 
 fun ByteArray.toProtoGet () : Proto_Get {
     return ProtoBuf.load(Proto_Get.serializer(), this)
+}
+
+fun ByteArray.toProtoPut () : Proto_Put {
+    return ProtoBuf.load(Proto_Put.serializer(), this)
 }

@@ -96,10 +96,23 @@ fun handle (server: ServerSocket, remote: Socket, local: Host) {
         }
     }
 
+    fun recv_3000 () {
+        try {
+            val n = reader.readInt()
+            val put = reader.readNBytes(n.toInt()).toProtoPut()
+            val chain = local.loadChain(put.nw)
+            chain.publish(put.pay.toString(Charsets.UTF_8))
+            writer.writeBoolean(true)
+        } catch (e: Exception) {
+            writer.writeBoolean(false)
+        }
+    }
+
     when (header.type) {
         0x0000.toShort() -> { server.close() ; println("Host is down: $local") }
         0x1000.toShort() -> recv_1000()
         0x2000.toShort() -> recv_2000()
+        0x3000.toShort() -> recv_3000()
         else -> error("invalid header type")
     }
 }
