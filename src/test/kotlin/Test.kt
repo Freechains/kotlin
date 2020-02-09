@@ -196,6 +196,7 @@ class Tests {
     fun m1_args () {
         a_reset()
         serverMain(arrayOf("tests/local/","create"))
+        serverMain(arrayOf("tests/local/","chain","create","/xxx/0/"))
         serverMain(arrayOf("tests/8331/","create","8331"))
         thread {
             Thread.sleep(100)
