@@ -8,15 +8,14 @@ val doc = """
 freechains-server
 
 Usage:
-    freechains-server create <dir> [<port>]
-    freechains-server start <dir>
-    freechains-server stop
-    freechains-server chain create <dir> <chain>/<work>
-    freechains-server chain broadcast <dir> <chain>/<work>
-    freechains-server chain subscribe <chain>/<work> (<address>:<port>)...
+    freechains-server <dir> create [<port>]
+    freechains-server <dir> start
+    freechains-server <dir> stop
+    freechains-server <dir> chain create <chain>/<work>
+    freechains-server <dir> chain broadcast <chain>/<work>
+    freechains-server <dir> chain subscribe <chain>/<work> (<address>:<port>)...
 
 Options:
-    --host=<addr:port>          address and port to connect [default: localhost:8330]
     --help                      display this help
     --version                   display version information
 
@@ -27,20 +26,23 @@ More Information:
     Please report bugs at <http://github.com/Freechains/kotlin>.
 """
 
-fun cmd_create (dir: String, port: Int) : Int {
-    Host_create(dir,port)
+fun cmd_create (dir: String, port: String?) : Int {
+    val host = Host_create(dir,port?.toInt() ?: 8330)
+    println("Creating host: $host")
     return 0
 }
 
 fun cmd_start (dir: String) : Int {
     val host = Host_load(dir)
+    println("Starting host: $host")
     daemon(host)
     return 0
 }
 
-fun cmd_stop (opt_host: String?) : Int {
-    val (host,port) = (opt_host ?: "localhost:8330").split(":")
-    val socket = Socket(host,port.toInt())
+fun cmd_stop (dir: String) : Int {
+    val host = Host_load(dir)
+    val socket = Socket("localhost",host.port)
+    println("Stopping host: $host")
     socket.send_0000()
     socket.close()
     return 0
@@ -48,11 +50,10 @@ fun cmd_stop (opt_host: String?) : Int {
 
 fun main (args: Array<String>) : Int {
     val opts = Docopt(doc).withVersion("freechains-server v0.2").parse(args.toMutableList())
-
     return when {
-        opts["create"] as Boolean -> cmd_create(opts["<dir>"] as String, 8330)
+        opts["create"] as Boolean -> cmd_create(opts["<dir>"] as String, opts["<port>"] as String?)
         opts["start"]  as Boolean -> cmd_start(opts["<dir>"] as String)
-        opts["stop"]   as Boolean -> cmd_stop(opts["--host"] as String?)
+        opts["stop"]   as Boolean -> cmd_stop(opts["<dir>"] as String)
         else -> -1
     }
 }

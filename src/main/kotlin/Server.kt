@@ -97,7 +97,7 @@ fun handle (server: ServerSocket, remote: Socket, local: Host) {
     }
 
     when (header.type) {
-        0x0000.toShort() -> { println("Host is down.") ; server.close() }
+        0x0000.toShort() -> { server.close() ; println("Host is down: $local") }
         0x1000.toShort() -> recv_1000()
         0x2000.toShort() -> recv_2000()
         else -> error("invalid header type")
