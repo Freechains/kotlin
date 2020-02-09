@@ -10,6 +10,8 @@ import kotlin.concurrent.thread
 import kotlinx.serialization.protobuf.ProtoBuf
 
 import freechains.*
+import freechains.client.main as clientMain
+import freechains.server.main as serverMain
 
 /*
  *  TODO: command-line daemon / client
@@ -196,14 +198,14 @@ class Tests {
         //main(arrayOf("freechains","--pc-only","a","b","c"))
         //main(arrayOf("freechains","get","/xxx/0"))
         //main(arrayOf("freechains","host","create","tests/local/"))
-        main(arrayOf("freechains","host","create","tests/local/"))
-        main(arrayOf("freechains","host","create","tests/8331/","8331"))
+        serverMain(arrayOf("create","tests/local/"))
+        serverMain(arrayOf("create","tests/8331/","8331"))
         thread {
-            main(arrayOf("freechains","get","/xxx/","--host=localhost:8330"))
-            main(arrayOf("freechains","get","/xxx"))
+            clientMain(arrayOf("get","/xxx/","--host=localhost:8330"))
+            clientMain(arrayOf("get","/xxx"))
             Thread.sleep(100)
-            main(arrayOf("freechains","host","stop","tests/local/"))
+            serverMain(arrayOf("stop","tests/local/"))
         }
-        main(arrayOf("freechains","host","start","tests/local/"))
+        serverMain(arrayOf("start","tests/local/"))
     }
 }
