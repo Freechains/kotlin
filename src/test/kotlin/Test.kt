@@ -46,7 +46,7 @@ class Tests {
     fun b2_node () {
         val chain = Chain("tests/local/", "/uerj",0)
         val node = Node(0,0,"111", arrayOf(chain.toGenHH()))
-        node.setNonceHashWithZeros(0)
+        node.setNonceHashWithWork(0)
         //println("Node /uerj/0/111: ${node.hash!!}")
         chain.saveNode(node)
         val node2 = chain.loadNodeFromHH(node.toNodeHH())
@@ -127,8 +127,8 @@ class Tests {
 
         val a1 = Node(0,0,"a1", arrayOf(chain.toGenHH()))
         val b1 = Node(0,0,"b1", arrayOf(chain.toGenHH()))
-        a1.setNonceHashWithZeros(0)
-        b1.setNonceHashWithZeros(0)
+        a1.setNonceHashWithWork(0)
+        b1.setNonceHashWithWork(0)
         chain.saveNode(a1)
         chain.saveNode(b1)
         chain.reheads(a1)
@@ -138,7 +138,7 @@ class Tests {
         chain.publish("ab2", 0)
 
         val b2 = Node(0,0,"b2", arrayOf(b1.toNodeHH()))
-        b2.setNonceHashWithZeros(0)
+        b2.setNonceHashWithWork(0)
         chain.saveNode(b2)
         chain.reheads(b2)
 

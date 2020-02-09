@@ -9,15 +9,15 @@ import java.time.Instant
 
 @Serializable
 data class Chain_NZ (
-    val name  : String,
-    val zeros : Byte        // TODO: rename to work
+    val name : String,
+    val work : Byte
 )
 
 @Serializable
 data class Chain (
-    val path  : String,
-    val name  : String,
-    val zeros : Byte
+    val path : String,
+    val name : String,
+    val work : Byte
 ) {
     val hash  : String = this.toHash()
     val heads : ArrayList<Node_HH> = arrayListOf(this.toGenHH())
@@ -40,12 +40,12 @@ fun String.fromJsonToChain () : Chain {
 // CONVERSIONS
 
 fun Chain.toChainNZ () : Chain_NZ {
-    return Chain_NZ(name, zeros)
+    return Chain_NZ(name, work)
 }
 
 fun String.toChainNZ () : Chain_NZ {
-    val (name,zeros) = this.split("/")
-    return Chain_NZ(name,zeros.toByte())
+    val (name,work) = this.split("/")
+    return Chain_NZ(name,work.toByte())
 }
 
 // PUBLISH
@@ -56,7 +56,7 @@ fun Chain.publish (payload: String) : Node {
 
 fun Chain.publish (payload: String, time: Long) : Node {
     val node = Node(time, 0, payload, this.heads.toTypedArray())
-    node.setNonceHashWithZeros(this.zeros)
+    node.setNonceHashWithWork(this.work)
     this.saveNode(node)
     this.reheads(node)
     this.save()
@@ -79,7 +79,7 @@ fun Chain.toGenHH () : Node_HH {
 // PATH
 
 fun Chain.toPath () : String {
-    return this.name + "/" + this.zeros
+    return this.name + "/" + this.work
 }
 
 // HASH
@@ -95,7 +95,7 @@ private fun Chain.toByteArray () : ByteArray {
         bytes.set(off, v.toByte())
         off += 1
     }
-    bytes.set(off, this.zeros)
+    bytes.set(off, this.work)
     off += 1
     return bytes
 }

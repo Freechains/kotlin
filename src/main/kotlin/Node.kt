@@ -66,11 +66,11 @@ fun ByteArray.toHash (): String {
     return MessageDigest.getInstance("SHA-256").digest(this).toHexString()
 }
 
-fun Node.setNonceHashWithZeros (zeros: Byte) {
+fun Node.setNonceHashWithWork (work: Byte) {
     while (true) {
         val hash = this.calcHash()
         //println(hash)
-        if (hash2zeros(hash) >= zeros) {
+        if (hash2work(hash) >= work) {
             this.hash = hash
             return
         }
@@ -86,19 +86,19 @@ private fun Node.calcHash (): String {
     return this.toByteArray().toHash()
 }
 
-private fun hash2zeros (hash: String): Int {
-    var zeros = 0
+private fun hash2work (hash: String): Int {
+    var work = 0
     for (i in hash.indices step 2) {
         val bits = hash.substring(i, i+2).toInt(16)
         for (j in 7 downTo 0) {
-            //println("$zeros, $bits, $j, ${bits shr j}")
+            //println("$work, $bits, $j, ${bits shr j}")
             if (((bits shr j) and 1) == 1) {
-                return zeros
+                return work
             }
-            zeros += 1
+            work += 1
         }
     }
-    return zeros
+    return work
 }
 
 private fun Node.toByteArray (): ByteArray {

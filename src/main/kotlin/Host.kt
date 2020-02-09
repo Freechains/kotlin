@@ -28,8 +28,8 @@ fun String.fromJsonToHost () : Host {
 
 // CHAIN
 
-fun Host.createChain (name: String, zeros: Byte) : Chain {
-    val chain = Chain(this.path,name,zeros)
+fun Host.createChain (name: String, work: Byte) : Chain {
+    val chain = Chain(this.path,name,work)
     val file = File(this.path + "/chains/" + chain.toPath() + ".chain")
     if (!file.exists()) {
         chain.save()
@@ -37,13 +37,13 @@ fun Host.createChain (name: String, zeros: Byte) : Chain {
     return file.readText().fromJsonToChain()
 }
 
-fun Host.loadChain (name: String, zeros: Byte) : Chain {
-    val file = File(this.path + "/chains/" + name + "/" + zeros + ".chain")
+fun Host.loadChain (name: String, work: Byte) : Chain {
+    val file = File(this.path + "/chains/" + name + "/" + work + ".chain")
     return file.readText().fromJsonToChain()
 }
 
 fun Host.loadChain (chain: Chain_NZ) : Chain {
-    return this.loadChain(chain.name,chain.zeros)
+    return this.loadChain(chain.name,chain.work)
 }
 
 // FILE SYSTEM
