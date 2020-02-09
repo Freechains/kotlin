@@ -2,6 +2,7 @@ package freechains
 
 import java.io.DataInputStream
 import java.io.DataOutputStream
+import java.lang.Exception
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.SocketException
@@ -82,14 +83,17 @@ fun handle (server: ServerSocket, remote: Socket, local: Host) {
     }
 
     fun recv_2000 () {
-        // receive chain
-        val n = reader.readShort()
-        val get = reader.readNBytes(n.toInt()).toProtoGet()
-        val chain = local.loadChain(get.nz)
-        val json = chain.loadNodeFromHH(get.hh).toJson()
-        assert(json.length <= Int.MAX_VALUE)
-        writer.writeByte(json.length)
-        writer.writeChars(json)
+        try {
+            val n = reader.readShort()
+            val get = reader.readNBytes(n.toInt()).toProtoGet()
+            val chain = local.loadChain(get.nz)
+            val json = chain.loadNodeFromHH(get.hh).toJson()
+            assert(json.length <= Int.MAX_VALUE)
+            writer.writeInt(json.length)
+            writer.writeChars(json)
+        } catch (e: Exception) {
+            writer.writeInt(0)
+        }
     }
 
     when (header.type) {

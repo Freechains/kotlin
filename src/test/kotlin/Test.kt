@@ -195,15 +195,12 @@ class Tests {
     @Test
     fun m1_args () {
         a_reset()
-        //main(arrayOf("freechains","--pc-only","a","b","c"))
-        //main(arrayOf("freechains","get","/xxx/0"))
-        //main(arrayOf("freechains","host","create","tests/local/"))
         serverMain(arrayOf("create","tests/local/"))
         serverMain(arrayOf("create","tests/8331/","8331"))
         thread {
-            clientMain(arrayOf("get","/xxx/","--host=localhost:8330"))
-            clientMain(arrayOf("get","/xxx"))
             Thread.sleep(100)
+            clientMain(arrayOf("get","/xxx/0/0/x","--host=localhost:8330"))
+            clientMain(arrayOf("get","/xxx/0/0/x"))
             serverMain(arrayOf("stop","tests/local/"))
         }
         serverMain(arrayOf("start","tests/local/"))

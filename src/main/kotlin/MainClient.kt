@@ -31,11 +31,16 @@ More Information:
 
 fun cmd_get (chain_work_height_hash: String, opt_host: String = "localhost:8330") : Int {
     val (host,port) = opt_host.split(":")
-    val (name,zeros,height,hash) = chain_work_height_hash.split("/")
+    val (_,name,work,height,hash) = chain_work_height_hash.split("/")
     val socket = Socket(host, port.toInt())
-    val ret = socket.send_2000(Chain_NZ(name,zeros.toByte()), Node_HH(height.toLong(),hash))
+    val ret = socket.send_2000(Chain_NZ(name,work.toByte()), Node_HH(height.toLong(),hash))
     socket.close()
-    return (if (ret == null) -1 else 0)
+    if (ret == null) {
+        System.err.println("publication is not found")
+        return -1
+    } else {
+        return 0
+    }
 }
 
 fun main (args: Array<String>) : Int {

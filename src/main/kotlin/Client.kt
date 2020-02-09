@@ -28,7 +28,7 @@ fun Socket.send_2000 (chain: Chain_NZ, node: Node_HH): String? {
     val get = Proto_Get(chain, node)
     val bytes2 = ProtoBuf.dump(Proto_Get.serializer(), get)
     assert(bytes2.size <= Short.MAX_VALUE)
-    writer.writeByte(bytes2.size)
+    writer.writeShort(bytes2.size)
     writer.write(bytes2)
 
     val ret = reader.readInt()
