@@ -199,8 +199,8 @@ class Tests {
         serverMain(arrayOf("tests/8331/","create","8331"))
         thread {
             Thread.sleep(100)
-            clientMain(arrayOf("get","--host=localhost:8330","/xxx/0/0/x"))
-            clientMain(arrayOf("get","/xxx/0/0/x"))
+            clientMain(arrayOf("get","--host=localhost:8330","/xxx/0", "0/x"))
+            clientMain(arrayOf("get","/xxx/0/", "0/x/"))
             serverMain(arrayOf("tests/local/","stop"))
         }
         serverMain(arrayOf("tests/local/","start"))

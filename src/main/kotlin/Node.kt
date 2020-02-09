@@ -60,6 +60,11 @@ fun Node.toNodeHH () : Node_HH {
     return Node_HH(this.height, this.hash!!)
 }
 
+fun String.toNodeHH () : Node_HH {
+    val (height,hash) = this.split("/")
+    return Node_HH(height.toLong(), hash)
+}
+
 // HASH
 
 fun ByteArray.toHash (): String {

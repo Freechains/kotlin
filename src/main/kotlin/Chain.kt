@@ -44,8 +44,9 @@ fun Chain.toChainNW () : Chain_NW {
 }
 
 fun String.toChainNW () : Chain_NW {
-    val (x, name,work) = this.split("/")
-    assert(x == "/")
+    val all = this.trimEnd('/').split("/").toMutableList()
+    val work = all.removeAt(all.size-1)
+    val name = all.joinToString("/")
     return Chain_NW(name,work.toByte())
 }
 
