@@ -36,7 +36,7 @@ fun Host.createChain (name: String, work: Byte) : Chain {
     return file.readText().fromJsonToChain()
 }
 
-fun Host.createChain (nw: Chain_NZ) : Chain {
+fun Host.createChain (nw: Chain_NW) : Chain {
     return this.createChain(nw.name,nw.work)
 }
 
@@ -45,7 +45,7 @@ fun Host.loadChain (name: String, work: Byte) : Chain {
     return file.readText().fromJsonToChain()
 }
 
-fun Host.loadChain (chain: Chain_NZ) : Chain {
+fun Host.loadChain (chain: Chain_NW) : Chain {
     return this.loadChain(chain.name,chain.work)
 }
 

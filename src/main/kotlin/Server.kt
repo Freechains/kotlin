@@ -38,7 +38,7 @@ fun handle (server: ServerSocket, remote: Socket, local: Host) {
     fun recv_1000 () {
         // receive chain
         val n2 = reader.readShort()
-        val chain_ = reader.readNBytes(n2.toInt()).toChainNZ()
+        val chain_ = reader.readNBytes(n2.toInt()).toChainNW()
         val chain = local.loadChain(chain_)
         println("[recv] chain: $chain")
 
@@ -86,7 +86,7 @@ fun handle (server: ServerSocket, remote: Socket, local: Host) {
         try {
             val n = reader.readShort()
             val get = reader.readNBytes(n.toInt()).toProtoGet()
-            val chain = local.loadChain(get.nz)
+            val chain = local.loadChain(get.nw)
             val json = chain.loadNodeFromHH(get.hh).toJson()
             assert(json.length <= Int.MAX_VALUE)
             writer.writeInt(json.length)

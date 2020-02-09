@@ -40,7 +40,7 @@ class Tests {
         val chain1 = Chain("tests/local/", "/uerj", 0)
         //println("Chain /uerj/0: ${chain1.toHash()}")
         chain1.save()
-        val chain2 = host1.loadChain(chain1.toChainNZ())
+        val chain2 = host1.loadChain(chain1.toChainNW())
         assertThat(chain1.hashCode()).isEqualTo(chain2.hashCode())
     }
 
@@ -86,9 +86,9 @@ class Tests {
         //println("SIZE_PROTOBUF_HEADER: ${bytes.size}")
         assert(header.size == 7)
 
-        val v0 = Chain_NZ("/ceu", 10)
-        val v1 = ProtoBuf.dump(Chain_NZ.serializer(), v0)
-        val v2 = ProtoBuf.load(Chain_NZ.serializer(), v1)
+        val v0 = Chain_NW("/ceu", 10)
+        val v1 = ProtoBuf.dump(Chain_NW.serializer(), v0)
+        val v2 = ProtoBuf.load(Chain_NW.serializer(), v1)
         assert(v0 == v2)
 
         val n1 = Node(0,0,"111", arrayOf(Node_HH(0,"000"), Node_HH(1,"111")))

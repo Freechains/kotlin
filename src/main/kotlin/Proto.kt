@@ -18,7 +18,7 @@ data class Proto_Node_HH (
 
 @Serializable
 data class Proto_Get (
-    val nz: Chain_NZ,
+    val nw: Chain_NW,
     val hh: Node_HH
 )
 
@@ -32,8 +32,8 @@ fun ByteArray.toHeader () : Proto_Header {
     return ProtoBuf.load(Proto_Header.serializer(), this)
 }
 
-fun ByteArray.toChainNZ () : Chain_NZ {
-    return ProtoBuf.load(Chain_NZ.serializer(), this)
+fun ByteArray.toChainNW () : Chain_NW {
+    return ProtoBuf.load(Chain_NW.serializer(), this)
 }
 
 fun ByteArray.toProtoNodeHH () : Proto_Node_HH {

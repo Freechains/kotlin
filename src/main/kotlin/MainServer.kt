@@ -41,7 +41,7 @@ fun cmd_start (dir: String) : Int {
 
 fun cmd_chain_create (dir: String, chain_work: String) : Int {
     val host = Host_load(dir)
-    val nw = chain_work.toChainNZ()
+    val nw = chain_work.toChainNW()
     val chain = host.createChain(nw)
     println("Creating chain: $chain")
     return 0

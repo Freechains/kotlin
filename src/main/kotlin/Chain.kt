@@ -8,7 +8,7 @@ import java.io.File
 import java.time.Instant
 
 @Serializable
-data class Chain_NZ (
+data class Chain_NW (
     val name : String,
     val work : Byte
 )
@@ -39,14 +39,14 @@ fun String.fromJsonToChain () : Chain {
 
 // CONVERSIONS
 
-fun Chain.toChainNZ () : Chain_NZ {
-    return Chain_NZ(name, work)
+fun Chain.toChainNW () : Chain_NW {
+    return Chain_NW(name, work)
 }
 
-fun String.toChainNZ () : Chain_NZ {
+fun String.toChainNW () : Chain_NW {
     val (x, name,work) = this.split("/")
     assert(x == "/")
-    return Chain_NZ(name,work.toByte())
+    return Chain_NW(name,work.toByte())
 }
 
 // PUBLISH

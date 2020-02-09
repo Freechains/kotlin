@@ -33,7 +33,7 @@ fun cmd_get (chain_work_height_hash: String, opt_host: String?) : Int {
     val (host,port) = (opt_host ?: "localhost:8330").split(":")
     val (_,name,work,height,hash) = chain_work_height_hash.split("/")
     val socket = Socket(host, port.toInt())
-    val ret = socket.send_2000(Chain_NZ(name,work.toByte()), Node_HH(height.toLong(),hash))
+    val ret = socket.send_2000(Chain_NW(name,work.toByte()), Node_HH(height.toLong(),hash))
     socket.close()
     if (ret == null) {
         System.err.println("publication is not found")

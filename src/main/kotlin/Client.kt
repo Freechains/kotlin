@@ -15,7 +15,7 @@ fun Socket.send_0000 () {
     writer.write(bytes)
 }
 
-fun Socket.send_2000 (chain: Chain_NZ, node: Node_HH): String? {
+fun Socket.send_2000 (chain: Chain_NW, node: Node_HH): String? {
     val reader = DataInputStream(this.getInputStream()!!)
     val writer = DataOutputStream(this.getOutputStream()!!)
 
@@ -51,7 +51,7 @@ fun Socket.send_1000 (chain: Chain) {
     writer.write(bytes1)
 
     // send chain
-    val bytes2 = ProtoBuf.dump(Chain_NZ.serializer(), chain.toChainNZ())
+    val bytes2 = ProtoBuf.dump(Chain_NW.serializer(), chain.toChainNW())
     assert(bytes2.size <= Short.MAX_VALUE)
     writer.writeShort(bytes2.size)
     writer.write(bytes2)
