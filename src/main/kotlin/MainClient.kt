@@ -29,8 +29,8 @@ More Information:
     Please report bugs at <http://github.com/Freechains/kotlin>.
 """
 
-fun cmd_get (chain_work_height_hash: String, opt_host: String = "localhost:8330") : Int {
-    val (host,port) = opt_host.split(":")
+fun cmd_get (chain_work_height_hash: String, opt_host: String?) : Int {
+    val (host,port) = (opt_host ?: "localhost:8330").split(":")
     val (_,name,work,height,hash) = chain_work_height_hash.split("/")
     val socket = Socket(host, port.toInt())
     val ret = socket.send_2000(Chain_NZ(name,work.toByte()), Node_HH(height.toLong(),hash))
@@ -47,7 +47,7 @@ fun main (args: Array<String>) : Int {
     val opts = Docopt(doc).withVersion("freechains-client v0.2").parse(args.toMutableList())
 
     return when {
-        opts["get"] as Boolean -> cmd_get(opts["<chain>/<work>/<height>/<hash>"] as String, opts["--host"] as String)
+        opts["get"] as Boolean -> cmd_get(opts["<chain>/<work>/<height>/<hash>"] as String, opts["--host"] as String?)
         else -> -1
     }
 }

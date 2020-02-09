@@ -10,11 +10,13 @@ freechains-server
 Usage:
     freechains-server create <dir> [<port>]
     freechains-server start <dir>
-    freechains-server stop <dir>
-    freechains-server broadcast <dir> <chain>/<work>
-    freechains-server subscribe <chain>/<work> (<address>:<port>)...
+    freechains-server stop
+    freechains-server chain create <dir> <chain>/<work>
+    freechains-server chain broadcast <dir> <chain>/<work>
+    freechains-server chain subscribe <chain>/<work> (<address>:<port>)...
 
 Options:
+    --host=<addr:port>          address and port to connect [default: localhost:8330]
     --help                      display this help
     --version                   display version information
 
@@ -36,9 +38,9 @@ fun cmd_start (dir: String) : Int {
     return 0
 }
 
-fun cmd_stop (dir: String) : Int {
-    val host = Host_load(dir)
-    val socket = Socket("127.0.0.1", host.port)
+fun cmd_stop (opt_host: String?) : Int {
+    val (host,port) = (opt_host ?: "localhost:8330").split(":")
+    val socket = Socket(host,port.toInt())
     socket.send_0000()
     socket.close()
     return 0
@@ -50,7 +52,7 @@ fun main (args: Array<String>) : Int {
     return when {
         opts["create"] as Boolean -> cmd_create(opts["<dir>"] as String, 8330)
         opts["start"]  as Boolean -> cmd_start(opts["<dir>"] as String)
-        opts["stop"]   as Boolean -> cmd_stop(opts["<dir>"] as String)
+        opts["stop"]   as Boolean -> cmd_stop(opts["--host"] as String?)
         else -> -1
     }
 }

@@ -201,7 +201,7 @@ class Tests {
             Thread.sleep(100)
             clientMain(arrayOf("get","/xxx/0/0/x","--host=localhost:8330"))
             clientMain(arrayOf("get","/xxx/0/0/x"))
-            serverMain(arrayOf("stop","tests/local/"))
+            serverMain(arrayOf("stop"))
         }
         serverMain(arrayOf("start","tests/local/"))
     }
