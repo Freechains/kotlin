@@ -4,6 +4,7 @@ import kotlinx.serialization.protobuf.ProtoBuf
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.Socket
+import java.nio.charset.Charset
 import java.util.*
 
 fun Socket.send_0000 () {
@@ -31,11 +32,11 @@ fun Socket.send_2000 (chain: Chain_NW, node: Node_HH): String? {
     writer.writeShort(bytes2.size)
     writer.write(bytes2)
 
-    val ret = reader.readInt()
-    if (ret == 0) {
+    val ret = reader.readBoolean()
+    if (!ret) {
         return null
     } else {
-        return reader.readNBytes(ret).protobufToNode().toJson()
+        return reader.readUTF()
     }
 }
 

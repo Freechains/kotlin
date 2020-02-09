@@ -89,10 +89,10 @@ fun handle (server: ServerSocket, remote: Socket, local: Host) {
             val chain = local.loadChain(get.nw)
             val json = chain.loadNodeFromHH(get.hh).toJson()
             assert(json.length <= Int.MAX_VALUE)
-            writer.writeInt(json.length)
-            writer.writeChars(json)
+            writer.writeBoolean(true)
+            writer.writeUTF(json)
         } catch (e: Exception) {
-            writer.writeInt(0)
+            writer.writeBoolean(false)
         }
     }
 

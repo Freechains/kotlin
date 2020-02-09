@@ -38,6 +38,7 @@ fun cmd_get (name_work: String, height_hash: String, opt_host: String?) : Int {
         System.err.println("publication is not found")
         return -1
     } else {
+        println(ret)
         return 0
     }
 }

@@ -20,7 +20,7 @@ data class Node (
     val payload : String,
     val backs   : Array<Node_HH>
 ) {
-    val height  : Long = this.backs.fold(0.toLong(), { cur,hh -> max(cur,hh.height) }) + 1
+    val height  : Long = if (this.backs.isEmpty()) 0 else this.backs.fold(0.toLong(), { cur,hh -> max(cur,hh.height) }) + 1
     var hash    : String? = null
 }
 
