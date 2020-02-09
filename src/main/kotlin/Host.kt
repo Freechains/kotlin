@@ -42,6 +42,10 @@ fun Host.loadChain (name: String, zeros: Byte) : Chain {
     return file.readText().fromJsonToChain()
 }
 
+fun Host.loadChain (chain: Chain_NZ) : Chain {
+    return this.loadChain(chain.name,chain.zeros)
+}
+
 // FILE SYSTEM
 
 fun Host.save () {

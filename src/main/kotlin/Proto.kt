@@ -23,22 +23,32 @@ data class Proto_Node_HH (
     val hash   : ByteArray
 )
 
+@Serializable
+data class Proto_Get (
+    val nz: Chain_NZ,
+    val hh: Node_HH
+)
+
 // CONVERSIONS
 
 fun Proto_Node_HH.toNodeHH () : Node_HH {
     return Node_HH(this.height, this.hash.toHexString())
 }
 
-fun ByteArray.toHeader (): Proto_Header {
+fun ByteArray.toHeader () : Proto_Header {
     return ProtoBuf.load(Proto_Header.serializer(), this)
 }
 
-fun ByteArray.toChainNZ (): Chain_NZ {
+fun ByteArray.toChainNZ () : Chain_NZ {
     return ProtoBuf.load(Chain_NZ.serializer(), this)
 }
 
-fun ByteArray.toProtoNodeHH (): Proto_Node_HH {
+fun ByteArray.toProtoNodeHH () : Proto_Node_HH {
     return ProtoBuf.load(Proto_Node_HH.serializer(), this)
+}
+
+fun ByteArray.toProtoGet () : Proto_Get {
+    return ProtoBuf.load(Proto_Get.serializer(), this)
 }
 
 // SERVER
@@ -72,11 +82,10 @@ fun handle (server: ServerSocket, remote: Socket, local: Host) {
     //println("Type: 0x${header.type.toString(16)}")
 
     fun recv_1000 () {
-
         // receive chain
         val n2 = reader.readShort()
         val chain_ = reader.readNBytes(n2.toInt()).toChainNZ()
-        val chain = local.loadChain(chain_.name,chain_.zeros)
+        val chain = local.loadChain(chain_)
         println("[recv] chain: $chain")
 
         val toRecv : Stack<Node_HH> = Stack()
@@ -119,9 +128,21 @@ fun handle (server: ServerSocket, remote: Socket, local: Host) {
         }
     }
 
+    fun recv_2000 () {
+        // receive chain
+        val n = reader.readShort()
+        val get = reader.readNBytes(n.toInt()).toProtoGet()
+        val chain = local.loadChain(get.nz)
+        val json = chain.loadNodeFromHH(get.hh).toJson()
+        assert(json.length <= Int.MAX_VALUE)
+        writer.writeByte(json.length)
+        writer.writeChars(json)
+    }
+
     when (header.type) {
         0x0000.toShort() -> { println("Host is down.") ; server.close() }
         0x1000.toShort() -> recv_1000()
+        0x2000.toShort() -> recv_2000()
         else -> error("invalid header type")
     }
 }
@@ -133,6 +154,30 @@ fun Socket.send_0000 () {
     assert(bytes.size <= Byte.MAX_VALUE)
     writer.writeByte(bytes.size)
     writer.write(bytes)
+}
+
+fun Socket.send_2000 (chain: Chain_NZ, node: Node_HH): String? {
+    val reader = DataInputStream(this.getInputStream()!!)
+    val writer = DataOutputStream(this.getOutputStream()!!)
+
+    val header = Proto_Header('F'.toByte(), 'C'.toByte(), 0x2000)
+    val bytes1 = ProtoBuf.dump(Proto_Header.serializer(), header)
+    assert(bytes1.size <= Byte.MAX_VALUE)
+    writer.writeByte(bytes1.size)
+    writer.write(bytes1)
+
+    val get = Proto_Get(chain, node)
+    val bytes2 = ProtoBuf.dump(Proto_Get.serializer(), get)
+    assert(bytes2.size <= Short.MAX_VALUE)
+    writer.writeByte(bytes2.size)
+    writer.write(bytes2)
+
+    val ret = reader.readInt()
+    if (ret == 0) {
+        return null
+    } else {
+        return reader.readNBytes(ret).protobufToNode().toJson()
+    }
 }
 
 fun Socket.send_1000 (chain: Chain) {

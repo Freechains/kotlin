@@ -38,7 +38,7 @@ class Tests {
         val chain1 = Chain("tests/local/", "/uerj", 0)
         //println("Chain /uerj/0: ${chain1.toHash()}")
         chain1.save()
-        val chain2 = host1.loadChain(chain1.name, chain1.zeros)
+        val chain2 = host1.loadChain(chain1.toChainNZ())
         assertThat(chain1.hashCode()).isEqualTo(chain2.hashCode())
     }
 
@@ -193,8 +193,14 @@ class Tests {
     @Test
     fun m1_args () {
         a_reset()
-        main(arrayOf("freechains","host","create","tests/local/","8330"))
+        //main(arrayOf("freechains","--pc-only","a","b","c"))
+        //main(arrayOf("freechains","get","/xxx/0"))
+        //main(arrayOf("freechains","host","create","tests/local/"))
+        main(arrayOf("freechains","host","create","tests/local/"))
+        main(arrayOf("freechains","host","create","tests/8331/","8331"))
         thread {
+            main(arrayOf("freechains","get","/xxx/","--host=localhost:8330"))
+            main(arrayOf("freechains","get","/xxx"))
             Thread.sleep(100)
             main(arrayOf("freechains","host","stop","tests/local/"))
         }

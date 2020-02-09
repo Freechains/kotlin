@@ -10,7 +10,7 @@ import java.time.Instant
 @Serializable
 data class Chain_NZ (
     val name  : String,
-    val zeros : Byte
+    val zeros : Byte        // TODO: rename to work
 )
 
 @Serializable
@@ -37,10 +37,15 @@ fun String.fromJsonToChain () : Chain {
     return json.parse(Chain.serializer(), this)
 }
 
-// PROTO
+// CONVERSIONS
 
 fun Chain.toChainNZ () : Chain_NZ {
     return Chain_NZ(name, zeros)
+}
+
+fun String.toChainNZ () : Chain_NZ {
+    val (name,zeros) = this.split("/")
+    return Chain_NZ(name,zeros.toByte())
 }
 
 // PUBLISH
