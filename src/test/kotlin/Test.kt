@@ -3,16 +3,15 @@ import org.junit.jupiter.api.MethodOrderer.Alphanumeric
 import org.junit.jupiter.api.TestMethodOrder
 import org.junit.jupiter.api.Test
 
-import java.net.Socket
 import java.io.File
 
 import kotlin.concurrent.thread
-import kotlinx.serialization.protobuf.ProtoBuf
 
 import org.freechains.kotlin.*
 
 /*
  *  TODO:
+ *  - 948 LOC
  *  - command-line daemon / client
  *  - chain locks
  *  - peer/chain configurations in host
@@ -32,7 +31,6 @@ class Tests {
         val x = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
         val y = byteArrayOf(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31)
         assert(x == y.toHexString())
-        assert(x.hashToByteArray().contentEquals(y))
     }
 
     @Test
@@ -50,7 +48,6 @@ class Tests {
         val chain = Chain("tests/local/", "/uerj",0)
         val node = Node(0,0,"111", arrayOf(chain.toGenHH()))
         node.setNonceHashWithWork(0)
-        //println("Node /uerj/0/111: ${node.hash!!}")
         chain.saveNode(node)
         val node2 = chain.loadNodeFromHH(node.toNodeHH())
         assertThat(node.hashCode()).isEqualTo(node2.hashCode())
@@ -70,24 +67,6 @@ class Tests {
         assert(chain.containsNode(n2.toNodeHH()))
         assert(chain.containsNode(n3.toNodeHH()))
         assert(!chain.containsNode(Node_HH(2, "........")))
-    }
-
-    @Test
-    fun c2_getBacks () {
-        val host = Host_load("tests/local/")
-        val chain = host.loadChain("/ceu/10")
-        val ret = chain.getBacksWithHeightOf(chain.heads[0],2)
-        //println(ret)
-        assert(ret.toString() == "[000d621b455be6f7a441dc662b7506a0ecd85ab835853c2528ab5f212d61b5c7]")
-    }
-
-    @Test
-    fun d1_protobuf () {
-        val n1 = Node(0,0,"111", arrayOf(Node_HH(0,"000"), Node_HH(1,"111")))
-        n1.hash = "XXX"
-        val bytes = ProtoBuf.dump(Node.serializer(), n1)
-        val n2 = bytes.protobufToNode()
-        assert(n1.toString() == n2.toString())
     }
 
     @Test
@@ -149,22 +128,7 @@ class Tests {
         chain.saveNode(b2)
         chain.reheads(b2)
 
-        val ret0 = chain.getBacksWithHeightOf(chain.heads[0],1)
-        val ret1 = chain.getBacksWithHeightOf(chain.heads[1],1)
-        //println(ret0)
-        //println(ret1)
-        assert(ret0.toString() == "[fdce30159fa932f438704eb7a646d5ed51938ea3bd8f928318f3e29a59403d54, ce274de26ef001a02cbe3f4d3adf360831fd1a27886cc55429fac0034daa4edc]")
-        assert(ret1.toString() == "[ce274de26ef001a02cbe3f4d3adf360831fd1a27886cc55429fac0034daa4edc]")
-
-        //val ab3 =
         chain.publish("ab3", 0)
-        val ret3 = chain.getBacksWithHeightOf(chain.heads[0],1)
-        val ret4 = chain.getBacksWithHeightOf(chain.heads[0],2)
-        //println(ret3)
-        //println(ret4)
-        assert(ret3.toString() == "[fdce30159fa932f438704eb7a646d5ed51938ea3bd8f928318f3e29a59403d54, ce274de26ef001a02cbe3f4d3adf360831fd1a27886cc55429fac0034daa4edc, ce274de26ef001a02cbe3f4d3adf360831fd1a27886cc55429fac0034daa4edc]")
-        assert(ret4.toString() == "[86dc6eb9696fb9f424be59c40daaef1c9e12883a3d2c498f81c9df22fdc96d59, bc4ce369e5a5b9ce427a07c6ea5beb124eb0d864348ff1d1c998c3a3557edd11]")
-
         chain.save()
         /*
                /-- (a1) --\

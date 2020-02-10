@@ -3,15 +3,10 @@ package org.freechains.kotlin
 import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
-import kotlinx.serialization.protobuf.ProtoBuf
 import java.security.MessageDigest
 import kotlin.math.max
 
-@Serializable
-data class Node_HH (
-    val height : Long,
-    val hash   : String
-)
+typealias Node_HH = Pair<Long,String>
 
 @Serializable
 data class Node (
@@ -20,7 +15,7 @@ data class Node (
     val payload : String,
     val backs   : Array<Node_HH>
 ) {
-    val height  : Long = if (this.backs.isEmpty()) 0 else this.backs.fold(0.toLong(), { cur,hh -> max(cur,hh.height) }) + 1
+    val height  : Long = if (this.backs.isEmpty()) 0 else this.backs.fold(0.toLong(), { cur,hh -> max(cur,hh.first) }) + 1
     var hash    : String? = null
 }
 
@@ -38,20 +33,6 @@ fun String.jsonToNode (): Node {
     return json.parse(Node.serializer(), this)
 }
 
-// PROTOBUF
-
-fun ByteArray.protobufToNode (): Node {
-    return ProtoBuf.load(Node.serializer(), this)
-}
-
-fun Node_HH.toNodeHH () : Node_HH {
-    return Node_HH(this.height, this.hash)
-}
-
-fun ByteArray.toNodeHH () : Node_HH {
-    return ProtoBuf.load(Node_HH.serializer(), this)
-}
-
 // HH
 
 fun Node.toNodeHH () : Node_HH {
@@ -61,6 +42,15 @@ fun Node.toNodeHH () : Node_HH {
 fun String.pathToNodeHH () : Node_HH {
     val (height,hash) = this.split("/")
     return Node_HH(height.toLong(), hash)
+}
+
+fun Node_HH.toPath () : String {
+    val (height,hash) = this
+    return height.toString() + "/" + hash
+}
+
+fun Node.toPath () : String {
+    return this.height.toString() + "/" + this.hash!!
 }
 
 // HASH
@@ -116,7 +106,7 @@ private fun Node.toByteArray (): ByteArray {
         off += 1
     }
     for (hh in this.backs) {
-        for (v in hh.hash) {
+        for (v in hh.second) {
             bytes.set(off, v.toByte())
             off += 1
         }
@@ -135,20 +125,6 @@ private fun ByteArray.setLongAt (index: Int, value: Long) {
     this.set(index + 7, (value shr 56).toByte())
 }
 
-// HEX STRING <-> BYTE ARRAY
-
-// https://gist.github.com/fabiomsr/845664a9c7e92bafb6fb0ca70d4e44fd
-
 fun ByteArray.toHexString () : String {
     return this.fold("", { str, it -> str + "%02x".format(it) })
-}
-
-fun String.hashToByteArray () : ByteArray {
-    val ret = this.hexToByteArray()
-    assert(ret.size == 32) { "invalid hash" }
-    return ret
-}
-
-private fun String.hexToByteArray () : ByteArray {
-    return ByteArray(this.length / 2) { this.substring(it * 2, it * 2 + 2).toInt(16).toByte() }
 }

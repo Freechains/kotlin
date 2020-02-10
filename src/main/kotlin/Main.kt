@@ -95,13 +95,11 @@ fun main (args: Array<String>) {
                     writer.writeLineX("FC chain put")
                     writer.writeLineX(opts["<chain/work>"] as String)
                     val payload = when {
-                        opts["text"] as Boolean -> (opts["<path_or_text>"] as String).toByteArray()
-                        opts["file"] as Boolean -> File(opts["<path_or_text>"] as String).readBytes()
+                        opts["text"] as Boolean -> opts["<path_or_text>"] as String
+                        opts["file"] as Boolean -> File(opts["<path_or_text>"] as String).readBytes().toString(Charsets.UTF_8)
                         else -> error("TODO -")
                     }
-                    assert(payload.size <= Int.MAX_VALUE)
-                    writer.writeInt(payload.size)
-                    writer.write(payload)
+                    writer.writeUTF(payload)
                     val hash = reader.readLineX()
                     println(hash)
                 }

@@ -114,36 +114,14 @@ fun Chain.saveNode (node: Node) {
 }
 
 fun Chain.loadNodeFromHH (hh: Node_HH): Node {
-    return File(this.root + "/chains/" + this.toPath() + "/" + hh.hash + ".node").readText().jsonToNode()
+    return File(this.root + "/chains/" + this.toPath() + "/" + hh.second + ".node").readText().jsonToNode()
 }
 
 fun Chain.containsNode (hh: Node_HH) : Boolean {
-    if (this.hash == hh.hash) {
+    if (this.hash == hh.second) {
         return true
     } else {
-        val file = File(this.root + "/chains/" + this.toPath() + "/" + hh.hash + ".node")
+        val file = File(this.root + "/chains/" + this.toPath() + "/" + hh.second + ".node")
         return file.exists()
-    }
-}
-
-// TODO: REMOVE?
-
-fun Chain.getBacksWithHeightOf (hh: Node_HH, height: Long) : ArrayList<String> {
-    val ret: ArrayList<String> = ArrayList()
-    this.getBacksWithHeightOf(ret, hh, height)
-    return ret
-}
-
-fun Chain.getBacksWithHeightOf (ret: ArrayList<String>, hh: Node_HH, height: Long) {
-    //println("$height vs $hh")
-    assert(hh.height >= height) { "unexpected height"}
-    if (hh.height == height) {
-        ret.add(hh.hash)
-        return
-    }
-
-    val node = this.loadNodeFromHH(hh)
-    for (back in node.backs) {
-        this.getBacksWithHeightOf(ret, back, height)
     }
 }

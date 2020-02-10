@@ -1,9 +1,7 @@
 package org.freechains.kotlin
 
-import kotlinx.serialization.protobuf.ProtoBuf
 import java.io.DataInputStream
 import java.io.DataOutputStream
-import java.lang.Exception
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.SocketException
@@ -56,13 +54,12 @@ fun handle (server: ServerSocket, remote: Socket, local: Host) {
         }
         "FC chain put" -> {
             val path = reader.readLineX().pathCheck()
-            val n = reader.readInt()
-            val pay = reader.readNBytes(n)
+            val pay = reader.readUTF()
 
             val chain = local.loadChain(path)
-            val node = chain.publish(pay.toString(Charsets.UTF_8))
+            val node = chain.publish(pay)
 
-            writer.writeLineX(node.hash!!)
+            writer.writeLineX(node.toPath())
         }
         "FC chain send" -> {
             val path = reader.readLineX().pathCheck()
@@ -104,17 +101,13 @@ fun Socket.chain_send (chain: Chain) {
         }
 
         // transmit HH
-        val bytes = ProtoBuf.dump(Node_HH.serializer(), hh.toNodeHH())
-        assert(bytes.size <= Byte.MAX_VALUE)
-        writer.writeByte(bytes.size)
-        writer.write(bytes)
+        writer.writeLineX(hh.toPath())
 
         // receive response (needs or not)
-        val ret = reader.readByte()
-        if (ret == 0.toByte()) {
+        val ret = reader.readLineX()
+        if (ret == "0") {
             return      // don't need it, nothing else to receive here
         }
-        //println("[send] toSend: $hh")
         toSend.push(hh) // need it, add and proceed to backs
 
         // transmit backs
@@ -130,11 +123,11 @@ fun Socket.chain_send (chain: Chain) {
     for (hh in chain.heads) {
         send_rec(hh)
     }
-    writer.writeByte(0)     // no more nodes to send
+    writer.writeLineX("")  // no more nodes to send
 
     // send number of nodes to be sent (just to confirm)
     assert(toSend.size <= Short.MAX_VALUE) { "too many nodes to send" }
-    writer.writeShort(toSend.size)
+    writer.writeLineX(toSend.size.toString())
 
     // send nodes in reverse order
     while (toSend.isNotEmpty()) {
@@ -142,10 +135,8 @@ fun Socket.chain_send (chain: Chain) {
         //println("[send] send: $hh")
 
         val node = chain.loadNodeFromHH(hh)
-        val bytes = ProtoBuf.dump(Node.serializer(), node)
-        assert(bytes.size <= Int.MAX_VALUE)
-        writer.writeInt(bytes.size)
-        writer.write(bytes)
+        val json = node.toJson()
+        writer.writeUTF(json)
     }
 }
 
@@ -157,33 +148,30 @@ fun Socket.chain_recv (chain: Chain) {
 
     // receive all heads
     while (true) {
-        val n3 = reader.readByte()
+        val hh_ = reader.readLineX()
         //println("[recv] bytes: $n3")
-        if (n3 == 0.toByte()) {
+        if (hh_ == "") {
             break      // no more nodes to receive
         }
-
-        val hh = reader.readNBytes(n3.toInt()).toNodeHH()
-        //println("[recv] toRecv? $hh")
+        val hh = hh_.pathToNodeHH()
 
         // do I need this head?
         if (chain.containsNode(hh)) {
             //println("[server] dont need")
-            writer.writeByte(0)     // no
+            writer.writeLineX("0")     // no
         } else {
-            writer.writeByte(1)     // yes
+            writer.writeLineX("1")     // yes
             toRecv.push(hh)
         }
     }
 
-    val tot = reader.readShort()
-    assert(tot == toRecv.size.toShort()) { "unexpected number of nodes to receive" }
+    val tot = reader.readLineX().toInt()
+    assert(tot == toRecv.size) { "unexpected number of nodes to receive" }
 
     while (toRecv.isNotEmpty()) {
         val hh = toRecv.pop()
-        val n = reader.readInt()
-        val node = reader.readNBytes(n).protobufToNode()
-        assert(node.hash == hh.hash) { "unexpected hash of node received" }
+        val node = reader.readUTF().jsonToNode()
+        assert(node.toNodeHH() == hh) { "unexpected hash of node received" }
         //println("[server] node: $node")
         node.recheck()
         chain.reheads(node)
