@@ -1,10 +1,10 @@
 package org.freechains.kotlin
 
+import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
-import java.security.MessageDigest
-import kotlinx.serialization.*
 import kotlinx.serialization.protobuf.ProtoBuf
+import java.security.MessageDigest
 import kotlin.math.max
 
 @Serializable
@@ -44,14 +44,12 @@ fun ByteArray.protobufToNode (): Node {
     return ProtoBuf.load(Node.serializer(), this)
 }
 
-// PROTO
-
-fun Node.toProtoHH () : Proto_Node_HH {
-    return Proto_Node_HH(this.height, this.hash!!.hashToByteArray())
+fun Node_HH.toNodeHH () : Node_HH {
+    return Node_HH(this.height, this.hash)
 }
 
-fun Node_HH.toProtoHH () : Proto_Node_HH {
-    return Proto_Node_HH(this.height, this.hash.hashToByteArray())
+fun ByteArray.toNodeHH () : Node_HH {
+    return ProtoBuf.load(Node_HH.serializer(), this)
 }
 
 // HH

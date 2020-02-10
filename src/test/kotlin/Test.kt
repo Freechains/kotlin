@@ -40,7 +40,7 @@ class Tests {
         val chain1 = Chain("tests/local/", "/uerj", 0)
         //println("Chain /uerj/0: ${chain1.toHash()}")
         chain1.save()
-        val chain2 = host1.loadChain(chain1.toChainNW())
+        val chain2 = host1.loadChain(chain1.toPath())
         assertThat(chain1.hashCode()).isEqualTo(chain2.hashCode())
     }
 
@@ -58,7 +58,7 @@ class Tests {
     @Test
     fun c1_publish () {
         val host = Host_load("tests/local/")
-        val chain = host.createChain("/ceu", 10)
+        val chain = host.createChain("/ceu/10")
         val n1 = chain.publish("aaa", 0)
         val n2 = chain.publish("bbb", 1)
         val n3 = chain.publish("ccc", 2)
@@ -74,7 +74,7 @@ class Tests {
     @Test
     fun c2_getBacks () {
         val host = Host_load("tests/local/")
-        val chain = host.loadChain("/ceu", 10.toByte())
+        val chain = host.loadChain("/ceu/10")
         val ret = chain.getBacksWithHeightOf(chain.heads[0],2)
         //println(ret)
         assert(ret.toString() == "[000d621b455be6f7a441dc662b7506a0ecd85ab835853c2528ab5f212d61b5c7]")
@@ -82,15 +82,6 @@ class Tests {
 
     @Test
     fun d1_protobuf () {
-        val header = ProtoBuf.dump(Proto_Header.serializer(), Proto_Header('F'.toByte(), 'C'.toByte(), 0x1000))
-        //println("SIZE_PROTOBUF_HEADER: ${bytes.size}")
-        assert(header.size == 7)
-
-        val v0 = Chain_NW("/ceu", 10)
-        val v1 = ProtoBuf.dump(Chain_NW.serializer(), v0)
-        val v2 = ProtoBuf.load(Chain_NW.serializer(), v1)
-        assert(v0 == v2)
-
         val n1 = Node(0,0,"111", arrayOf(Node_HH(0,"000"), Node_HH(1,"111")))
         n1.hash = "XXX"
         val bytes = ProtoBuf.dump(Node.serializer(), n1)
@@ -113,14 +104,14 @@ class Tests {
 
         // SOURCE
         val src = Host_create("tests/src/")
-        val src_chain = src.createChain("/d3", 5)
+        val src_chain = src.createChain("/d3/5")
         src_chain.publish("aaa", 0)
         src_chain.publish("bbb", 0)
         thread { daemon(src) }
 
         // DESTINY
         val dst = Host_create("tests/dst/", 8331)
-        dst.createChain("/d3", 5)
+        dst.createChain("/d3/5")
         thread { daemon(dst) }
         Thread.sleep(100)
 
@@ -132,6 +123,7 @@ class Tests {
         Thread.sleep(100)
 
         // TODO: check if dst == src
+        // $ diff -r tests/dst/ tests/src/
     }
 
     @Test
@@ -184,12 +176,12 @@ class Tests {
         //a_reset()
 
         val h1 = Host_create("tests/h1/", 8330)
-        val h1_chain = h1.createChain("/xxx", 0)
+        val h1_chain = h1.createChain("/xxx/0")
         h1_chain.publish("h1_1", 0)
         h1_chain.publish("h1_2", 0)
 
         val h2 = Host_create("tests/h2/", 8331)
-        val h2_chain = h2.createChain("/xxx", 0)
+        val h2_chain = h2.createChain("/xxx/0")
         h2_chain.publish("h2_1", 0)
         h2_chain.publish("h2_2", 0)
 
@@ -203,24 +195,26 @@ class Tests {
         main(arrayOf("host","stop"))
         Thread.sleep(100)
 
-        // TODO: check if 8332 < 8331
+        // TODO: check if 8332 (h2) < 8331 (h1)
+        // $ diff -r tests/h1 tests/h2/
     }
 
     @Test
     fun m1_args () {
-        a_reset()
+        //a_reset()
         main(arrayOf("host","create","tests/M1/"))
         thread {
             main(arrayOf("host","start","tests/M1/"))
         }
         Thread.sleep(100)
-        main(arrayOf("chain","create","/xxx/0/"))
+        main(arrayOf("chain","create","/xxx/0"))
         main(arrayOf("chain","put","/xxx/0","text","aaa"))
         main(arrayOf("chain","put","/xxx/0","file","tests/M1/host"))
         main(arrayOf("chain","get","--host=localhost:8330","/xxx/0", "0/826ffb4505831e6355edc141f49b1ccf5b489b9f03760f0f2fed4eeed419c6fe"))
-        main(arrayOf("chain","get","/xxx/0/", "0/826ffb4505831e6355edc141f49b1ccf5b489b9f03760f0f2fed4eeed419c6fe/"))
+        main(arrayOf("chain","get","/xxx/0", "0/826ffb4505831e6355edc141f49b1ccf5b489b9f03760f0f2fed4eeed419c6fe/"))
         main(arrayOf("host","stop"))
 
         // TODO: check genesis 2x, "aaa", "host"
+        // $ cat tests/M1/chains/xxx/0/*
     }
 }

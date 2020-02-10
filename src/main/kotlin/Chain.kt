@@ -7,11 +7,7 @@ import kotlinx.serialization.json.JsonConfiguration
 import java.io.File
 import java.time.Instant
 
-@Serializable
-data class Chain_NW (
-    val name : String,
-    val work : Byte
-)
+typealias Chain_NW = Pair<String,Byte>
 
 @Serializable
 data class Chain (
@@ -77,14 +73,11 @@ fun String.pathToChainNW () : Chain_NW {
     val name = all.joinToString("/")
     return Chain_NW(name,work.toByte())
 }
-fun Chain_NW.toPath () : String {
-    return this.name + "/" + this.work
-}
 
-fun Chain.toChainNW () : Chain_NW {
-    return Chain_NW(name, work)
+fun String.pathCheck () : String {
+    assert(this[0] == '/' && this.last() != '/') { "invalid chain path: $this"}
+    return this
 }
-
 
 // HASH
 

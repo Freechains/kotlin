@@ -38,41 +38,46 @@ fun handle (server: ServerSocket, remote: Socket, local: Host) {
             System.err.println("host stop: $local")
         }
         "FC chain create" -> {
-            val chain_ = reader.readLineX()
-            val chain = local.createChain(chain_.pathToChainNW())
+            val path = reader.readLineX()
+            val chain = local.createChain(path)
             writer.writeUTF(chain.hash)
         }
         "FC chain get" -> {
-            val chain_ = reader.readLineX()
+            val path = reader.readLineX().pathCheck()
             val node_ = reader.readLineX()
-            val chain = local.loadChain(chain_.pathToChainNW())
-            val node  = chain.loadNodeFromHH(node_.pathToNodeHH())
 
+            val chain = local.loadChain(path)
+            val node  = chain.loadNodeFromHH(node_.pathToNodeHH())
             val json  = node.toJson()
+
             assert(json.length <= Int.MAX_VALUE)
             writer.writeLineX("1")
             writer.writeUTF(json)
         }
         "FC chain put" -> {
-            val chain_ = reader.readLineX()
+            val path = reader.readLineX().pathCheck()
             val n = reader.readInt()
             val pay = reader.readNBytes(n)
-            val chain = local.loadChain(chain_.pathToChainNW())
+
+            val chain = local.loadChain(path)
             val node = chain.publish(pay.toString(Charsets.UTF_8))
+
             writer.writeLineX(node.hash!!)
         }
         "FC chain send" -> {
-            val chain_ = reader.readLineX()
+            val path = reader.readLineX().pathCheck()
             val host_ = reader.readLineX()
-            val chain = local.loadChain(chain_.pathToChainNW())
+
+            val chain = local.loadChain(path)
             val (host,port) = host_.hostSplit()
+
             val socket = Socket(host, port)
             socket.chain_send(chain)
             //writer.writeLineX(ret)
         }
         "FC chain receive" -> {
-            val chain_ = reader.readLineX()
-            val chain = local.loadChain(chain_.pathToChainNW())
+            val path = reader.readLineX().pathCheck()
+            val chain = local.loadChain(path)
             remote.chain_recv(chain)
             //writer.writeLineX(ret)
         }
@@ -99,7 +104,7 @@ fun Socket.chain_send (chain: Chain) {
         }
 
         // transmit HH
-        val bytes = ProtoBuf.dump(Proto_Node_HH.serializer(), hh.toProtoHH())
+        val bytes = ProtoBuf.dump(Node_HH.serializer(), hh.toNodeHH())
         assert(bytes.size <= Byte.MAX_VALUE)
         writer.writeByte(bytes.size)
         writer.write(bytes)
@@ -158,8 +163,7 @@ fun Socket.chain_recv (chain: Chain) {
             break      // no more nodes to receive
         }
 
-        val phh = reader.readNBytes(n3.toInt()).toProtoNodeHH()
-        val hh = phh.toNodeHH()
+        val hh = reader.readNBytes(n3.toInt()).toNodeHH()
         //println("[recv] toRecv? $hh")
 
         // do I need this head?
