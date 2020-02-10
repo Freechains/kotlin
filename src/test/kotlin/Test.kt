@@ -11,7 +11,7 @@ import org.freechains.kotlin.*
 
 /*
  *  TODO:
- *  - 948 LOC
+ *  - 948 -> 852 -> 841 LOC
  *  - command-line daemon / client
  *  - chain locks
  *  - peer/chain configurations in host
@@ -46,10 +46,10 @@ class Tests {
     @Test
     fun b2_node () {
         val chain = Chain("tests/local/", "/uerj",0)
-        val node = Node(0,0,"111", arrayOf(chain.toGenHH()))
+        val node = Node(0,0,"111", arrayOf(chain.toGenHash()))
         node.setNonceHashWithWork(0)
         chain.saveNode(node)
-        val node2 = chain.loadNodeFromHH(node.toNodeHH())
+        val node2 = chain.loadNodeFromHash(node.hash!!)
         assertThat(node.hashCode()).isEqualTo(node2.hashCode())
     }
 
@@ -61,12 +61,12 @@ class Tests {
         val n2 = chain.publish("bbb", 1)
         val n3 = chain.publish("ccc", 2)
 
-        assert(chain.containsNode(chain.toGenHH()))
+        assert(chain.containsNode(chain.toGenHash()))
         //println(n1.toHeightHash())
-        assert(chain.containsNode(n1.toNodeHH()))
-        assert(chain.containsNode(n2.toNodeHH()))
-        assert(chain.containsNode(n3.toNodeHH()))
-        assert(!chain.containsNode(Node_HH(2, "........")))
+        assert(chain.containsNode(n1.hash!!))
+        assert(chain.containsNode(n2.hash!!))
+        assert(chain.containsNode(n3.hash!!))
+        assert(!chain.containsNode("2_........"))
     }
 
     @Test
@@ -111,8 +111,8 @@ class Tests {
         val chain = Chain("tests/local/", "/graph",0)
         chain.save()
 
-        val a1 = Node(0,0,"a1", arrayOf(chain.toGenHH()))
-        val b1 = Node(0,0,"b1", arrayOf(chain.toGenHH()))
+        val a1 = Node(0,0,"a1", arrayOf(chain.toGenHash()))
+        val b1 = Node(0,0,"b1", arrayOf(chain.toGenHash()))
         a1.setNonceHashWithWork(0)
         b1.setNonceHashWithWork(0)
         chain.saveNode(a1)
@@ -123,7 +123,7 @@ class Tests {
         //val ab2 =
         chain.publish("ab2", 0)
 
-        val b2 = Node(0,0,"b2", arrayOf(b1.toNodeHH()))
+        val b2 = Node(0,0,"b2", arrayOf(b1.hash!!))
         b2.setNonceHashWithWork(0)
         chain.saveNode(b2)
         chain.reheads(b2)
@@ -176,8 +176,8 @@ class Tests {
         main(arrayOf("chain","create","/xxx/0"))
         main(arrayOf("chain","put","/xxx/0","text","aaa"))
         main(arrayOf("chain","put","/xxx/0","file","tests/M1/host"))
-        main(arrayOf("chain","get","--host=localhost:8330","/xxx/0", "0/826ffb4505831e6355edc141f49b1ccf5b489b9f03760f0f2fed4eeed419c6fe"))
-        main(arrayOf("chain","get","/xxx/0", "0/826ffb4505831e6355edc141f49b1ccf5b489b9f03760f0f2fed4eeed419c6fe/"))
+        main(arrayOf("chain","get","--host=localhost:8330","/xxx/0", "0_826ffb4505831e6355edc141f49b1ccf5b489b9f03760f0f2fed4eeed419c6fe"))
+        main(arrayOf("chain","get","/xxx/0", "0_826ffb4505831e6355edc141f49b1ccf5b489b9f03760f0f2fed4eeed419c6fe"))
         main(arrayOf("host","stop"))
 
         // TODO: check genesis 2x, "aaa", "host"

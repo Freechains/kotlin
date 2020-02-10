@@ -6,16 +6,14 @@ import kotlinx.serialization.json.JsonConfiguration
 import java.security.MessageDigest
 import kotlin.math.max
 
-typealias Node_HH = Pair<Long,String>
-
 @Serializable
 data class Node (
     val time    : Long,             // TODO: ULong
     var nonce   : Long,             // TODO: ULong
     val payload : String,
-    val backs   : Array<Node_HH>
+    val backs   : Array<String>
 ) {
-    val height  : Long = if (this.backs.isEmpty()) 0 else this.backs.fold(0.toLong(), { cur,hh -> max(cur,hh.first) }) + 1
+    val height  : Int = if (this.backs.isEmpty()) 0 else this.backs.fold(0, { cur,hash -> max(cur,hash.hashToHeight()) }) + 1
     var hash    : String? = null
 }
 
@@ -35,22 +33,14 @@ fun String.jsonToNode (): Node {
 
 // HH
 
-fun Node.toNodeHH () : Node_HH {
-    return Node_HH(this.height, this.hash!!)
+fun String.hashToHeight () : Int {
+    val (height,_) = this.split("_")
+    return height.toInt()
 }
 
-fun String.pathToNodeHH () : Node_HH {
-    val (height,hash) = this.split("/")
-    return Node_HH(height.toLong(), hash)
-}
-
-fun Node_HH.toPath () : String {
-    val (height,hash) = this
-    return height.toString() + "/" + hash
-}
-
-fun Node.toPath () : String {
-    return this.height.toString() + "/" + this.hash!!
+fun String.hashToHash () : String {
+    val (_,hash) = this.split("_")
+    return hash
 }
 
 // HASH
@@ -64,7 +54,7 @@ fun Node.setNonceHashWithWork (work: Byte) {
         val hash = this.calcHash()
         //println(hash)
         if (hash2work(hash) >= work) {
-            this.hash = hash
+            this.hash = this.height.toString() + "_" + hash
             return
         }
         this.nonce++
@@ -72,7 +62,7 @@ fun Node.setNonceHashWithWork (work: Byte) {
 }
 
 fun Node.recheck () {
-    assert(this.hash!! == this.calcHash())
+    assert(this.hash!! == this.height.toString() + "_" + this.calcHash())
 }
 
 private fun Node.calcHash (): String {
@@ -91,7 +81,7 @@ private fun hash2work (hash: String): Int {
             work += 1
         }
     }
-    return work
+    error("bug found!")
 }
 
 private fun Node.toByteArray (): ByteArray {
@@ -105,8 +95,8 @@ private fun Node.toByteArray (): ByteArray {
         bytes.set(off, v.toByte())
         off += 1
     }
-    for (hh in this.backs) {
-        for (v in hh.second) {
+    for (hash in this.backs) {
+        for (v in hash.hashToHash()) {
             bytes.set(off, v.toByte())
             off += 1
         }

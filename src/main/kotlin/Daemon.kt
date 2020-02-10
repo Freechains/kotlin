@@ -42,10 +42,10 @@ fun handle (server: ServerSocket, remote: Socket, local: Host) {
         }
         "FC chain get" -> {
             val path = reader.readLineX().pathCheck()
-            val node_ = reader.readLineX()
+            val hash = reader.readLineX()
 
             val chain = local.loadChain(path)
-            val node  = chain.loadNodeFromHH(node_.pathToNodeHH())
+            val node  = chain.loadNodeFromHash(hash)
             val json  = node.toJson()
 
             assert(json.length <= Int.MAX_VALUE)
@@ -59,7 +59,7 @@ fun handle (server: ServerSocket, remote: Socket, local: Host) {
             val chain = local.loadChain(path)
             val node = chain.publish(pay)
 
-            writer.writeLineX(node.toPath())
+            writer.writeLineX(node.hash!!)
         }
         "FC chain send" -> {
             val path = reader.readLineX().pathCheck()
@@ -89,32 +89,32 @@ fun Socket.chain_send (chain: Chain) {
     writer.writeLineX("FC chain receive")
     writer.writeLineX(chain.toPath())
 
-    val toSend : Stack<Node_HH> = Stack()
-    val visited = mutableSetOf<Node_HH>()
+    val toSend : Stack<String> = Stack()
+    val visited = mutableSetOf<String>()
 
-    fun send_rec (hh: Node_HH) {
+    fun send_rec (hash: String) {
         //println("[send] $hh")
-        if (visited.contains(hh)) {
+        if (visited.contains(hash)) {
             return
         } else {
-            visited.add(hh)
+            visited.add(hash)
         }
 
         // transmit HH
-        writer.writeLineX(hh.toPath())
+        writer.writeLineX(hash)
 
         // receive response (needs or not)
         val ret = reader.readLineX()
         if (ret == "0") {
             return      // don't need it, nothing else to receive here
         }
-        toSend.push(hh) // need it, add and proceed to backs
+        toSend.push(hash) // need it, add and proceed to backs
 
         // transmit backs
-        val node = chain.loadNodeFromHH(hh)
-        for (hh_back in node.backs) {
-            if (hh_back != chain.toGenHH()) {
-                send_rec(hh_back)
+        val node = chain.loadNodeFromHash(hash)
+        for (back in node.backs) {
+            if (back != chain.toGenHash()) {
+                send_rec(back)
             }
         }
     }
@@ -131,10 +131,10 @@ fun Socket.chain_send (chain: Chain) {
 
     // send nodes in reverse order
     while (toSend.isNotEmpty()) {
-        val hh = toSend.pop()
-        //println("[send] send: $hh")
+        val hash = toSend.pop()
+        //println("[send] send: $hash")
 
-        val node = chain.loadNodeFromHH(hh)
+        val node = chain.loadNodeFromHash(hash)
         val json = node.toJson()
         writer.writeUTF(json)
     }
@@ -144,24 +144,23 @@ fun Socket.chain_recv (chain: Chain) {
     val reader = DataInputStream(this.getInputStream()!!)
     val writer = DataOutputStream(this.getOutputStream()!!)
 
-    val toRecv : Stack<Node_HH> = Stack()
+    val toRecv : Stack<String> = Stack()
 
     // receive all heads
     while (true) {
-        val hh_ = reader.readLineX()
+        val hash = reader.readLineX()
         //println("[recv] bytes: $n3")
-        if (hh_ == "") {
+        if (hash == "") {
             break      // no more nodes to receive
         }
-        val hh = hh_.pathToNodeHH()
 
         // do I need this head?
-        if (chain.containsNode(hh)) {
+        if (chain.containsNode(hash)) {
             //println("[server] dont need")
             writer.writeLineX("0")     // no
         } else {
             writer.writeLineX("1")     // yes
-            toRecv.push(hh)
+            toRecv.push(hash)
         }
     }
 
@@ -169,9 +168,9 @@ fun Socket.chain_recv (chain: Chain) {
     assert(tot == toRecv.size) { "unexpected number of nodes to receive" }
 
     while (toRecv.isNotEmpty()) {
-        val hh = toRecv.pop()
+        val hash = toRecv.pop()
         val node = reader.readUTF().jsonToNode()
-        assert(node.toNodeHH() == hh) { "unexpected hash of node received" }
+        assert(node.hash!! == hash) { "unexpected hash of node received" }
         //println("[server] node: $node")
         node.recheck()
         chain.reheads(node)

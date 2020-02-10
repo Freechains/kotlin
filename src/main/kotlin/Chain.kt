@@ -16,7 +16,7 @@ data class Chain (
     val work : Byte
 ) {
     val hash  : String = this.toHash()
-    val heads : ArrayList<Node_HH> = arrayListOf(this.toGenHH())
+    val heads : ArrayList<String> = arrayListOf(this.toGenHash())
 }
 
 // JSON
@@ -49,16 +49,16 @@ fun Chain.publish (payload: String, time: Long) : Node {
 }
 
 fun Chain.reheads (node: Node) {
-    this.heads.add(node.toNodeHH())
-    for (hh in node.backs) {
-        this.heads.remove(hh)
+    this.heads.add(node.hash!!)
+    for (back in node.backs) {
+        this.heads.remove(back)
     }
 }
 
 // GENESIS
 
-fun Chain.toGenHH () : Node_HH {
-    return Node_HH(0, this.toHash())
+fun Chain.toGenHash () : String {
+    return "0_" + this.toHash()
 }
 
 // CONVERSIONS
@@ -113,15 +113,15 @@ fun Chain.saveNode (node: Node) {
     File(this.root + "/chains/" + this.toPath() + "/" + node.hash + ".node").writeText(node.toJson())
 }
 
-fun Chain.loadNodeFromHH (hh: Node_HH): Node {
-    return File(this.root + "/chains/" + this.toPath() + "/" + hh.second + ".node").readText().jsonToNode()
+fun Chain.loadNodeFromHash (hash: String): Node {
+    return File(this.root + "/chains/" + this.toPath() + "/" + hash + ".node").readText().jsonToNode()
 }
 
-fun Chain.containsNode (hh: Node_HH) : Boolean {
-    if (this.hash == hh.second) {
+fun Chain.containsNode (hash: String) : Boolean {
+    if (this.hash == hash) {
         return true
     } else {
-        val file = File(this.root + "/chains/" + this.toPath() + "/" + hh.second + ".node")
+        val file = File(this.root + "/chains/" + this.toPath() + "/" + hash + ".node")
         return file.exists()
     }
 }
