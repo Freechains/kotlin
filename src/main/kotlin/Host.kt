@@ -71,3 +71,14 @@ fun Host_create (dir: String, port: Int = 8330) : Host {
     host.save()
     return host
 }
+
+// SPLIT
+
+fun String.hostSplit () : Pair<String,Int> {
+    val lst = this.split(":")
+    return when (lst.size) {
+        0 -> Pair("localhost", 8330)
+        1 -> Pair(lst[0], 8330)
+        else -> Pair(lst[0], lst[1].toInt())
+    }
+}

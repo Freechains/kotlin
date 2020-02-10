@@ -10,8 +10,6 @@ import kotlin.concurrent.thread
 import kotlinx.serialization.protobuf.ProtoBuf
 
 import org.freechains.kotlin.*
-import org.freechains.kotlin.client.main as clientMain
-import org.freechains.kotlin.server.main as serverMain
 
 /*
  *  TODO:
@@ -106,34 +104,34 @@ class Tests {
         thread { daemon(local) }
         Thread.sleep(100)
 
-        val s = Socket("127.0.0.1", local.port)
-        s.send_close()
+        main(arrayOf("host","stop"))
         Thread.sleep(100)
-        s.close()
     }
     @Test
     fun d3_proto () {
-        // REMOTE
-        val remote = Host_create("tests/remote/")
-        val remote_chain = remote.createChain("/d3", 5)
-        remote_chain.publish("aaa", 0)
-        remote_chain.publish("bbb", 0)
+        //a_reset()
 
-        // LOCAL
-        val local = Host_load("tests/local/")
-        local.createChain("/d3", 5)
-        thread { daemon(local) }
+        // SOURCE
+        val src = Host_create("tests/src/")
+        val src_chain = src.createChain("/d3", 5)
+        src_chain.publish("aaa", 0)
+        src_chain.publish("bbb", 0)
+        thread { daemon(src) }
+
+        // DESTINY
+        val dst = Host_create("tests/dst/", 8331)
+        dst.createChain("/d3", 5)
+        thread { daemon(dst) }
         Thread.sleep(100)
 
-        val s1 = Socket("127.0.0.1", local.port)
-        s1.send_1000(remote_chain)
+        main(arrayOf("chain","send","/d3/5","localhost:8331"))
         Thread.sleep(100)
-        s1.close()
 
-        val s2 = Socket("127.0.0.1", local.port)
-        s2.send_close()
+        main(arrayOf("--host=localhost:8331","host","stop"))
+        main(arrayOf("host","stop"))
         Thread.sleep(100)
-        s2.close()
+
+        // TODO: check if dst == src
     }
 
     @Test
@@ -199,26 +197,30 @@ class Tests {
         thread { daemon(h1) }
         thread { daemon(h2) }
         Thread.sleep(100)
+        main(arrayOf("--host=localhost:8331","chain","send","/xxx/0","localhost"))
+        Thread.sleep(100)
+        main(arrayOf("--host=localhost:8331","host","stop"))
+        main(arrayOf("host","stop"))
+        Thread.sleep(100)
 
-        val socket = Socket("127.0.0.1", h1.port)
-        socket.send_1000(h2_chain)
-        socket.close()
+        // TODO: check if 8332 < 8331
     }
 
     @Test
     fun m1_args () {
         a_reset()
-        serverMain(arrayOf("tests/local/","create"))
-        serverMain(arrayOf("tests/local/","chain","create","/xxx/0/"))
-        serverMain(arrayOf("tests/8331/","create","8331"))
+        main(arrayOf("host","create","tests/M1/"))
         thread {
-            Thread.sleep(100)
-            clientMain(arrayOf("put","/xxx/0","text","aaa"))
-            clientMain(arrayOf("put","/xxx/0","file","tests/local/host"))
-            clientMain(arrayOf("get","--host=localhost:8330","/xxx/0", "0/826ffb4505831e6355edc141f49b1ccf5b489b9f03760f0f2fed4eeed419c6fe"))
-            clientMain(arrayOf("get","/xxx/0/", "0/826ffb4505831e6355edc141f49b1ccf5b489b9f03760f0f2fed4eeed419c6fe/"))
-            serverMain(arrayOf("tests/local/","stop"))
+            main(arrayOf("host","start","tests/M1/"))
         }
-        serverMain(arrayOf("tests/local/","start"))
+        Thread.sleep(100)
+        main(arrayOf("chain","create","/xxx/0/"))
+        main(arrayOf("chain","put","/xxx/0","text","aaa"))
+        main(arrayOf("chain","put","/xxx/0","file","tests/M1/host"))
+        main(arrayOf("chain","get","--host=localhost:8330","/xxx/0", "0/826ffb4505831e6355edc141f49b1ccf5b489b9f03760f0f2fed4eeed419c6fe"))
+        main(arrayOf("chain","get","/xxx/0/", "0/826ffb4505831e6355edc141f49b1ccf5b489b9f03760f0f2fed4eeed419c6fe/"))
+        main(arrayOf("host","stop"))
+
+        // TODO: check genesis 2x, "aaa", "host"
     }
 }
