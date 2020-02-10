@@ -33,7 +33,7 @@ fun String.jsonToNode (): Node {
 
 // HH
 
-fun String.hashToHeight () : Int {
+private fun String.hashToHeight () : Int {
     val (height,_) = this.split("_")
     return height.toInt()
 }
