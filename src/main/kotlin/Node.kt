@@ -60,9 +60,13 @@ fun Node.toNodeHH () : Node_HH {
     return Node_HH(this.height, this.hash!!)
 }
 
-fun String.toNodeHH () : Node_HH {
+fun String.pathToNodeHH () : Node_HH {
     val (height,hash) = this.split("/")
     return Node_HH(height.toLong(), hash)
+}
+
+fun Node_HH.toPath () : String {
+    return this.height.toString() + "/" + this.hash
 }
 
 // HASH

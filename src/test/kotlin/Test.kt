@@ -101,6 +101,17 @@ class Tests {
     }
 
     @Test
+    fun d2_proto () {
+        val local = Host_load("tests/local/")
+        thread { daemon(local) }
+        Thread.sleep(100)
+
+        val s = Socket("127.0.0.1", local.port)
+        s.send_close()
+        Thread.sleep(100)
+        s.close()
+    }
+    @Test
     fun d3_proto () {
         // REMOTE
         val remote = Host_create("tests/remote/")
@@ -120,7 +131,7 @@ class Tests {
         s1.close()
 
         val s2 = Socket("127.0.0.1", local.port)
-        s2.send_0000()
+        s2.send_close()
         Thread.sleep(100)
         s2.close()
     }

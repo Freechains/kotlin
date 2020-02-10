@@ -26,48 +26,41 @@ More Information:
     Please report bugs at <http://github.com/Freechains/kotlin>.
 """
 
-fun cmd_create (dir: String, port: String?) : Int {
-    val host = Host_create(dir,port?.toInt() ?: 8330)
-    println("Creating host: $host")
-    return 0
-}
-
-fun cmd_start (dir: String) : Int {
-    val host = Host_load(dir)
-    println("Starting host: $host")
-    daemon(host)
-    return 0
-}
-
-fun cmd_chain_create (dir: String, name_work: String) : Int {
-    val host = Host_load(dir)
-    val nw = name_work.toChainNW()
-    val chain = host.createChain(nw)
-    println("Creating chain: $chain")
-    return 0
-}
-
-fun cmd_stop (dir: String) : Int {
-    val host = Host_load(dir)
-    val socket = Socket("localhost",host.port)
-    println("Stopping host: $host")
-    socket.send_0000()
-    socket.close()
-    return 0
-}
-
 fun main (args: Array<String>) {
     val opts = Docopt(doc).withVersion("freechains-server v0.2").parse(args.toMutableList())
-    val ret = when {
-        opts["chain"]  as Boolean ->
+    val dir = opts["<dir>"] as String
+
+    when {
+        // CHAIN
+        opts["chain"] as Boolean -> {
+            val host = Host_load(dir)
             when {
-                opts["create"] as Boolean -> cmd_chain_create(opts["<dir>"] as String, opts["<chain/work>"] as String)
-                else -> -1
+                opts["create"] as Boolean -> {
+                    val nw = (opts["<chain/work>"] as String).pathToChainNW()
+                    val chain = host.createChain(nw)
+                    println("Creating chain: $chain")
+                }
             }
-        opts["create"] as Boolean -> cmd_create(opts["<dir>"] as String, opts["<port>"] as String?)
-        opts["start"]  as Boolean -> cmd_start(opts["<dir>"] as String)
-        opts["stop"]   as Boolean -> cmd_stop(opts["<dir>"] as String)
-        else -> -1
+        }
+
+        // HOST
+
+        opts["create"] as Boolean -> {
+            val host = Host_create(dir,(opts["<port>"] as String?)?.toInt() ?: 8330)
+            println("Creating host: $host")
+        }
+        opts["start"] as Boolean -> {
+            val host = Host_load(dir)
+            println("Starting host: $host")
+            daemon(host)
+        }
+        opts["stop"] as Boolean -> {
+            val host = Host_load(dir)
+            println("Stopping host: $host")
+            val socket = Socket("localhost",host.port)
+            socket.send_close()
+            socket.close()
+        }
     }
-    System.err.println("system return: $ret")
+    //System.err.println("system return: $ret")
 }

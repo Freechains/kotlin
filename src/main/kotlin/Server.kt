@@ -29,13 +29,7 @@ fun handle (server: ServerSocket, remote: Socket, local: Host) {
     val reader = DataInputStream(remote.getInputStream()!!)
     val writer = DataOutputStream(remote.getOutputStream()!!)
 
-    // HEADER
-    val n1 = reader.readByte()
-    val header = reader.readNBytes(n1.toInt()).toHeader()
-    assert(header.F.toChar() == 'F' && header.C.toChar() == 'C') { "invalid header signature" }
-    //println("Type: 0x${header.type.toString(16)}")
-
-    fun recv_1000 () {
+   fun recv_1000 () {
         // receive chain
         val n2 = reader.readShort()
         val chain_ = reader.readNBytes(n2.toInt()).toChainNW()
@@ -82,37 +76,31 @@ fun handle (server: ServerSocket, remote: Socket, local: Host) {
         }
     }
 
-    fun recv_2000 () {
-        try {
-            val n = reader.readShort()
-            val get = reader.readNBytes(n.toInt()).toProtoGet()
-            val chain = local.loadChain(get.nw)
-            val json = chain.loadNodeFromHH(get.hh).toJson()
+    val ln = reader.readLineX()
+    when (ln) {
+        "FC STO" -> { server.close() ; println("Host is down: $local") }
+        "FC GET" -> {
+            val chain_ = reader.readLineX()
+            val node_  = reader.readLineX()
+            
+            val chain = local.loadChain(chain_.pathToChainNW())
+            val node  = chain.loadNodeFromHH(node_.pathToNodeHH())
+
+            val json  = node.toJson()
             assert(json.length <= Int.MAX_VALUE)
-            writer.writeBoolean(true)
+            writer.writeLineX("1")
             writer.writeUTF(json)
-        } catch (e: Exception) {
-            writer.writeBoolean(false)
         }
-    }
+        "FC PUT" -> {
+            val path = reader.readLineX()
+            val n    = reader.readInt()
+            val pay  = reader.readNBytes(n)
 
-    fun recv_3000 () {
-        try {
-            val n = reader.readInt()
-            val put = reader.readNBytes(n).toProtoPut()
-            val chain = local.loadChain(put.nw)
-            chain.publish(put.pay.toString(Charsets.UTF_8))
-            writer.writeBoolean(true)
-        } catch (e: Exception) {
-            writer.writeBoolean(false)
+            val chain = local.loadChain(path.pathToChainNW())
+            chain.publish(pay.toString(Charsets.UTF_8))
+            writer.writeLineX("1")
         }
-    }
-
-    when (header.type) {
-        0x0000.toShort() -> { server.close() ; println("Host is down: $local") }
-        0x1000.toShort() -> recv_1000()
-        0x2000.toShort() -> recv_2000()
-        0x3000.toShort() -> recv_3000()
-        else -> error("invalid header type")
+        //0x1000.toShort() -> recv_1000()
+        else -> { println(ln) ; error("invalid header type") }
     }
 }

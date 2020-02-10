@@ -37,19 +37,6 @@ fun String.fromJsonToChain () : Chain {
     return json.parse(Chain.serializer(), this)
 }
 
-// CONVERSIONS
-
-fun Chain.toChainNW () : Chain_NW {
-    return Chain_NW(name, work)
-}
-
-fun String.toChainNW () : Chain_NW {
-    val all = this.trimEnd('/').split("/").toMutableList()
-    val work = all.removeAt(all.size-1)
-    val name = all.joinToString("/")
-    return Chain_NW(name,work.toByte())
-}
-
 // PUBLISH
 
 fun Chain.publish (payload: String) : Node {
@@ -78,11 +65,26 @@ fun Chain.toGenHH () : Node_HH {
     return Node_HH(0, this.toHash())
 }
 
-// PATH
+// CONVERSIONS
 
 fun Chain.toPath () : String {
     return this.name + "/" + this.work
 }
+
+fun String.pathToChainNW () : Chain_NW {
+    val all = this.trimEnd('/').split("/").toMutableList()
+    val work = all.removeAt(all.size-1)
+    val name = all.joinToString("/")
+    return Chain_NW(name,work.toByte())
+}
+fun Chain_NW.toPath () : String {
+    return this.name + "/" + this.work
+}
+
+fun Chain.toChainNW () : Chain_NW {
+    return Chain_NW(name, work)
+}
+
 
 // HASH
 

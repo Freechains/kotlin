@@ -4,59 +4,40 @@ import kotlinx.serialization.protobuf.ProtoBuf
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.Socket
-import java.nio.charset.Charset
 import java.util.*
 
-fun Socket.send_0000 () {
+fun Socket.send_close () {
     val writer = DataOutputStream(this.getOutputStream()!!)
-    val header = Proto_Header('F'.toByte(), 'C'.toByte(), 0x0000)
-    val bytes = ProtoBuf.dump(Proto_Header.serializer(), header)
-    assert(bytes.size <= Byte.MAX_VALUE)
-    writer.writeByte(bytes.size)
-    writer.write(bytes)
+    writer.write("FC STO\n".toByteArray())
 }
 
-fun Socket.send_2000 (chain: Chain_NW, node: Node_HH): String? {
+fun Socket.send_get (chain: Chain_NW, node: Node_HH): String? {
     val reader = DataInputStream(this.getInputStream()!!)
     val writer = DataOutputStream(this.getOutputStream()!!)
 
-    val header = Proto_Header('F'.toByte(), 'C'.toByte(), 0x2000)
-    val bytes1 = ProtoBuf.dump(Proto_Header.serializer(), header)
-    assert(bytes1.size <= Byte.MAX_VALUE)
-    writer.writeByte(bytes1.size)
-    writer.write(bytes1)
+    writer.write("FC GET\n".toByteArray())
+    writer.write((chain.toPath() + "\n").toByteArray())
+    writer.write((node.toPath() + "\n").toByteArray())
 
-    val get = Proto_Get(chain, node)
-    val bytes2 = ProtoBuf.dump(Proto_Get.serializer(), get)
-    assert(bytes2.size <= Short.MAX_VALUE)
-    writer.writeShort(bytes2.size)
-    writer.write(bytes2)
-
-    val ret = reader.readBoolean()
-    if (!ret) {
-        return null
-    } else {
-        return reader.readUTF()
+    return when (reader.readLineX()) {
+        "0" -> null
+        "1" -> reader.readUTF()
+        else -> null
     }
 }
 
-fun Socket.send_3000 (chain: Chain_NW, payload: ByteArray): Boolean {
+fun Socket.send_put (chain: Chain_NW, payload: ByteArray): Boolean {
     val reader = DataInputStream(this.getInputStream()!!)
     val writer = DataOutputStream(this.getOutputStream()!!)
 
-    val header = Proto_Header('F'.toByte(), 'C'.toByte(), 0x3000)
-    val bytes1 = ProtoBuf.dump(Proto_Header.serializer(), header)
-    assert(bytes1.size <= Byte.MAX_VALUE)
-    writer.writeByte(bytes1.size)
-    writer.write(bytes1)
+    writer.write("FC PUT\n".toByteArray())
+    writer.write((chain.toPath() + "\n").toByteArray())
 
-    val get = Proto_Put(chain, payload)
-    val bytes2 = ProtoBuf.dump(Proto_Put.serializer(), get)
-    assert(bytes2.size <= Int.MAX_VALUE)
-    writer.writeInt(bytes2.size)
-    writer.write(bytes2)
+    assert(payload.size <= Int.MAX_VALUE)
+    writer.writeInt(payload.size)
+    writer.write(payload)
 
-    return reader.readBoolean()
+    return reader.readLineX() == "1"
 }
 
 fun Socket.send_1000 (chain: Chain) {
