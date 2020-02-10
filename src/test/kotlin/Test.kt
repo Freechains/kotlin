@@ -17,6 +17,7 @@ import org.freechains.kotlin.*
  *  - chain locks
  *  - peer/chain configurations in host
  *  - generate executable
+ *  -
  */
 
 @TestMethodOrder(Alphanumeric::class)
@@ -129,6 +130,7 @@ class Tests {
     @Test
     fun e1_graph () {
         val chain = Chain("tests/local/", "/graph",0)
+        chain.save()
 
         val a1 = Node(0,0,"a1", arrayOf(chain.toGenHH()))
         val b1 = Node(0,0,"b1", arrayOf(chain.toGenHH()))
