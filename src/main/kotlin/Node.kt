@@ -63,10 +63,6 @@ fun String.pathToNodeHH () : Node_HH {
     return Node_HH(height.toLong(), hash)
 }
 
-fun Node_HH.toPath () : String {
-    return this.height.toString() + "/" + this.hash
-}
-
 // HASH
 
 fun ByteArray.toHash (): String {
