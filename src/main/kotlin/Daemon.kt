@@ -12,7 +12,7 @@ import kotlin.concurrent.thread
 
 fun daemon (host : Host) {
     val socket = ServerSocket(host.port)
-    System.err.println("host start: $host")
+    //System.err.println("host start: $host")
 
     while (true) {
         try {
