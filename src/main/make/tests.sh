@@ -92,9 +92,23 @@ do
   rm -Rf /tmp/freechains/$i
   freechains host create /tmp/freechains/$i $i
   freechains host stop --host=localhost:$i
-  freechains host start /tmp/freechains/8401 &
+  freechains host start /tmp/freechains/$i &
+  sleep 0.5
+  freechains --host=localhost:$i chain create /0
 done
-sleep 2
+
+for i in $(seq 8411 8420)
+do
+  freechains --host=localhost:8400 chain send /0 localhost:$i &
+done
+sleep 10
+
+set -e
+for i in $(seq 8411 8420)
+do
+  diff /tmp/freechains/8400/chains/0/ /tmp/freechains/$i/chains/0/
+done
+set +e
 
 ###############################################################################
 

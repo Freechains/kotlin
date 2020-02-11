@@ -1,6 +1,5 @@
 package org.freechains.kotlin
 
-import org.freechains.kotlin.*
 import org.docopt.Docopt
 import java.io.DataInputStream
 import java.io.DataOutputStream
@@ -41,11 +40,13 @@ fun main (args: Array<String>) {
         return ((opts["--host"] as String?) ?: "localhost:8330").hostSplit()
     }
 
+    Thread.setDefaultUncaughtExceptionHandler { _: Thread?, e: Throwable? -> System.err.println(e!!.message) }
+
     when {
         opts["host"] as Boolean ->
             when {
                 opts["create"] as Boolean -> {
-                    val dir  = opts["<dir>"] as String
+                    val dir = opts["<dir>"] as String
                     val port = (opts["<port>"] as String?)?.toInt() ?: 8330
                     val host = Host_create(dir, port)
                     System.err.println("host create: $host")
@@ -66,7 +67,7 @@ fun main (args: Array<String>) {
                     System.err.println("host stop: $host:$port")
                     socket.close()
                 }
-        }
+            }
         opts["chain"] as Boolean -> {
             val (host, port) = optHost()
             val socket = Socket(host, port)
