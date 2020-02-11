@@ -12,11 +12,10 @@ import org.freechains.kotlin.*
 /*
  *  TODO:
  *  - 948 -> 852 -> 841 LOC
- *  - command-line daemon / client
+ *  - testes antigos
  *  - chain locks
  *  - peer/chain configurations in host
- *  - generate executable
- *  -
+ *  - android
  */
 
 @TestMethodOrder(Alphanumeric::class)

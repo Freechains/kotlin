@@ -39,6 +39,7 @@ fun handle (server: ServerSocket, remote: Socket, local: Host) {
             val path = reader.readLineX()
             val chain = local.createChain(path)
             writer.writeUTF(chain.hash)
+            System.err.println("chain create: $path")
         }
         "FC chain get" -> {
             val path = reader.readLineX().pathCheck()
@@ -51,6 +52,7 @@ fun handle (server: ServerSocket, remote: Socket, local: Host) {
             assert(json.length <= Int.MAX_VALUE)
             writer.writeLineX("1")
             writer.writeUTF(json)
+            System.err.println("chain get: $hash")
         }
         "FC chain put" -> {
             val path = reader.readLineX().pathCheck()
@@ -60,6 +62,7 @@ fun handle (server: ServerSocket, remote: Socket, local: Host) {
             val node = chain.publish(pay)
 
             writer.writeLineX(node.hash!!)
+            System.err.println("chain put: ${node.hash!!}")
         }
         "FC chain send" -> {
             val path = reader.readLineX().pathCheck()
@@ -69,24 +72,27 @@ fun handle (server: ServerSocket, remote: Socket, local: Host) {
             val (host,port) = host_.hostSplit()
 
             val socket = Socket(host, port)
-            socket.chain_send(chain)
+            val n = socket.chain_send(chain)
+            System.err.println("chain send: $path: $n")
             //writer.writeLineX(ret)
         }
-        "FC chain receive" -> {
+        "FC chain recv" -> {
             val path = reader.readLineX().pathCheck()
             val chain = local.loadChain(path)
-            remote.chain_recv(chain)
+            val n = remote.chain_recv(chain)
+            System.err.println("chain recv: $path: $n")
             //writer.writeLineX(ret)
         }
         else -> { error("$ln: invalid header type") }
     }
+    remote.close()
 }
 
-fun Socket.chain_send (chain: Chain) {
+fun Socket.chain_send (chain: Chain) : Int {
     val reader = DataInputStream(this.getInputStream()!!)
     val writer = DataOutputStream(this.getOutputStream()!!)
 
-    writer.writeLineX("FC chain receive")
+    writer.writeLineX("FC chain recv")
     writer.writeLineX(chain.toPath())
 
     val toSend : Stack<String> = Stack()
@@ -101,6 +107,7 @@ fun Socket.chain_send (chain: Chain) {
         }
 
         // transmit HH
+        println("[send] $hash")
         writer.writeLineX(hash)
 
         // receive response (needs or not)
@@ -120,8 +127,8 @@ fun Socket.chain_send (chain: Chain) {
     }
 
     // send heads recursively
-    for (hh in chain.heads) {
-        send_rec(hh)
+    for (hash in chain.heads) {
+        send_rec(hash)
     }
     writer.writeLineX("")  // no more nodes to send
 
@@ -130,6 +137,7 @@ fun Socket.chain_send (chain: Chain) {
     writer.writeLineX(toSend.size.toString())
 
     // send nodes in reverse order
+    val ret = toSend.size
     while (toSend.isNotEmpty()) {
         val hash = toSend.pop()
         //println("[send] send: $hash")
@@ -138,9 +146,10 @@ fun Socket.chain_send (chain: Chain) {
         val json = node.toJson()
         writer.writeUTF(json)
     }
+    return ret
 }
 
-fun Socket.chain_recv (chain: Chain) {
+fun Socket.chain_recv (chain: Chain) : Int {
     val reader = DataInputStream(this.getInputStream()!!)
     val writer = DataOutputStream(this.getOutputStream()!!)
 
@@ -149,7 +158,7 @@ fun Socket.chain_recv (chain: Chain) {
     // receive all heads
     while (true) {
         val hash = reader.readLineX()
-        //println("[recv] bytes: $n3")
+        println("[recv] $hash")
         if (hash == "") {
             break      // no more nodes to receive
         }
@@ -167,6 +176,7 @@ fun Socket.chain_recv (chain: Chain) {
     val tot = reader.readLineX().toInt()
     assert(tot == toRecv.size) { "unexpected number of nodes to receive" }
 
+    val ret = toRecv.size
     while (toRecv.isNotEmpty()) {
         val hash = toRecv.pop()
         val node = reader.readUTF().jsonToNode()
@@ -177,4 +187,5 @@ fun Socket.chain_recv (chain: Chain) {
         chain.saveNode(node)
         chain.save()
     }
+    return ret
 }
