@@ -107,8 +107,8 @@ fun main (args: Array<String>) {
                     writer.writeLineX("FC chain send")
                     writer.writeLineX(opts["<chain/work>"] as String)
                     writer.writeLineX(opts["<host:port>"] as String)
-                    //val ret = reader.readLineX()
-                    //System.err.println("chain send: $ret")
+                    val ret = reader.readLineX()
+                    System.err.println("chain send: $ret")
                 }
             }
             socket.close()

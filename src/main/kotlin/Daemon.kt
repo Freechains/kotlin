@@ -74,7 +74,7 @@ fun handle (server: ServerSocket, remote: Socket, local: Host) {
             val socket = Socket(host, port)
             val n = socket.chain_send(chain)
             System.err.println("chain send: $path: $n")
-            //writer.writeLineX(ret)
+            writer.writeLineX(n.toString())
         }
         "FC chain recv" -> {
             val path = reader.readLineX().pathCheck()
@@ -146,6 +146,7 @@ fun Socket.chain_send (chain: Chain) : Int {
         val json = node.toJson()
         writer.writeUTF(json)
     }
+    reader.readLineX()
     return ret
 }
 
@@ -187,5 +188,6 @@ fun Socket.chain_recv (chain: Chain) : Int {
         chain.saveNode(node)
         chain.save()
     }
+    writer.writeLineX("")
     return ret
 }
