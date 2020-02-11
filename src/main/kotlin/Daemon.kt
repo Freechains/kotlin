@@ -107,7 +107,7 @@ fun Socket.chain_send (chain: Chain) : Int {
         }
 
         // transmit HH
-        println("[send] $hash")
+        //println("[send] $hash")
         writer.writeLineX(hash)
 
         // receive response (needs or not)
@@ -158,7 +158,7 @@ fun Socket.chain_recv (chain: Chain) : Int {
     // receive all heads
     while (true) {
         val hash = reader.readLineX()
-        println("[recv] $hash")
+        //println("[recv] $hash")
         if (hash == "") {
             break      // no more nodes to receive
         }
