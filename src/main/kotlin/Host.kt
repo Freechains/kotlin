@@ -9,7 +9,8 @@ import java.io.File
 @Serializable
 data class Host (
     val path : String,
-    val port : Int
+    val port : Int,
+    val timestamp : Boolean = true
 )
 
 // JSON
@@ -48,7 +49,7 @@ fun Host.loadChain (path: String) : Chain {
 // FILE SYSTEM
 
 fun Host.save () {
-    File(this.path + "/host").writeText(this.toJson())
+    File(this.path + "/host").writeText(this.toJson()+"\n")
 }
 
 fun Host_load (dir: String) : Host {

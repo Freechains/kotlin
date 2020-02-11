@@ -59,7 +59,7 @@ fun handle (server: ServerSocket, remote: Socket, local: Host) {
             val pay = reader.readUTF()
 
             val chain = local.loadChain(path)
-            val node = chain.publish(pay)
+            val node = if (local.timestamp) chain.publish(pay) else chain.publish(pay,0)
 
             writer.writeLineX(node.hash!!)
             System.err.println("chain put: ${node.hash!!}")

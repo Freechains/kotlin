@@ -110,7 +110,7 @@ fun Chain.save () {
 // NDOE
 
 fun Chain.saveNode (node: Node) {
-    File(this.root + "/chains/" + this.toPath() + "/" + node.hash + ".node").writeText(node.toJson())
+    File(this.root + "/chains/" + this.toPath() + "/" + node.hash + ".node").writeText(node.toJson()+"\n")
 }
 
 fun Chain.loadNodeFromHash (hash: String): Node {
