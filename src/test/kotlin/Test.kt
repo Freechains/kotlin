@@ -12,6 +12,7 @@ import org.freechains.kotlin.*
 /*
  *  TODO:
  *  - 948 -> 852 -> 841 LOC
+ *  - typedef Hash
  *  - uplinks, new algo send/recv
  *  - android
  *  - testes antigos
@@ -84,7 +85,7 @@ class Tests {
     }
     @Test
     fun d3_proto () {
-        //a_reset()
+        a_reset()
 
         // SOURCE
         val src = Host_create("tests/src/")

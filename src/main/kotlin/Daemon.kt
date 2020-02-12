@@ -95,99 +95,62 @@ fun Socket.chain_send (chain: Chain) : Int {
     writer.writeLineX("FC chain recv")
     writer.writeLineX(chain.toPath())
 
-    val toSend : Stack<String> = Stack()
-    val visited = mutableSetOf<String>()
-
-    fun send_rec (hash: String) {
-        //println("[send] $hh")
-        if (visited.contains(hash)) {
+    val toSend = mutableSetOf<String>()
+    fun traverse (hash: String) {
+        if (toSend.contains(hash)) {
             return
         } else {
-            visited.add(hash)
-        }
-
-        // transmit HH
-        //println("[send] $hash")
-        writer.writeLineX(hash)
-
-        // receive response (needs or not)
-        val ret = reader.readLineX()
-        if (ret == "0") {
-            return      // don't need it, nothing else to receive here
-        }
-        toSend.push(hash) // need it, add and proceed to backs
-
-        // transmit backs
-        val node = chain.loadNodeFromHash(hash)
-        for (back in node.backs) {
-            if (back != chain.toGenHash()) {
-                send_rec(back)
+            toSend.add(hash)
+            val node = chain.loadNodeFromHash(hash)
+            for (front in node.fronts) {
+                traverse(front)
             }
         }
     }
 
-    // send heads recursively
-    for (hash in chain.heads) {
-        send_rec(hash)
+    while (true) {
+        val head = reader.readLineX()
+        if (head == "") {
+            break
+        }
+        if (chain.containsNode(head)) {
+            val node = chain.loadNodeFromHash(head)
+            for (front in node.fronts) {
+                traverse(front)
+            }
+        }
     }
-    writer.writeLineX("")  // no more nodes to send
 
-    // send number of nodes to be sent (just to confirm)
-    assert(toSend.size <= Short.MAX_VALUE) { "too many nodes to send" }
     writer.writeLineX(toSend.size.toString())
-
-    // send nodes in reverse order
-    val ret = toSend.size
-    while (toSend.isNotEmpty()) {
-        val hash = toSend.pop()
-        //println("[send] send: $hash")
-
+    for (hash in toSend.toSortedSet()) {
         val node = chain.loadNodeFromHash(hash)
-        val json = node.toJson()
-        writer.writeUTF(json)
+        val new = Node(node.time,node.nonce,node.payload,node.backs, emptyArray())
+        new.hash = node.hash!!
+        writer.writeUTF(new.toJson())
     }
+
     reader.readLineX()
-    return ret
+    return toSend.size
 }
 
 fun Socket.chain_recv (chain: Chain) : Int {
     val reader = DataInputStream(this.getInputStream()!!)
     val writer = DataOutputStream(this.getOutputStream()!!)
 
-    val toRecv : Stack<String> = Stack()
-
-    // receive all heads
-    while (true) {
-        val hash = reader.readLineX()
-        //println("[recv] $hash")
-        if (hash == "") {
-            break      // no more nodes to receive
-        }
-
-        // do I need this head?
-        if (chain.containsNode(hash)) {
-            //println("[server] dont need")
-            writer.writeLineX("0")     // no
-        } else {
-            writer.writeLineX("1")     // yes
-            toRecv.push(hash)
-        }
+    // transmit heads
+    for (head in chain.heads) {
+        writer.writeLineX(head)
     }
+    writer.writeLineX("")
 
-    val tot = reader.readLineX().toInt()
-    assert(tot == toRecv.size) { "unexpected number of nodes to receive" }
-
-    val ret = toRecv.size
-    while (toRecv.isNotEmpty()) {
-        val hash = toRecv.pop()
+    val n = reader.readLineX().toInt()
+    for (i in 1..n) {
         val node = reader.readUTF().jsonToNode()
-        assert(node.hash!! == hash) { "unexpected hash of node received" }
-        //println("[server] node: $node")
         node.recheck()
         chain.reheads(node)
         chain.saveNode(node)
         chain.save()
     }
     writer.writeLineX("")
-    return ret
+    return n
 }

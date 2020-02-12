@@ -1,8 +1,11 @@
 #!/usr/bin/env sh
 
-while : ; do
+#while : ; do
 
 rm -Rf /tmp/freechains/
+
+###############################################################################
+echo "#### 1"
 
 freechains host create /tmp/freechains/8400 8400
 jq ".timestamp=false" /tmp/freechains/8400/host > /tmp/host.tmp && mv /tmp/host.tmp /tmp/freechains/8400/host
@@ -19,6 +22,7 @@ diff /tmp/freechains/freechains-tests-get-1.out  tests/freechains-tests-get-1.ou
 set +e
 
 ###############################################################################
+echo "#### 2"
 
 freechains host create /tmp/freechains/8401 8401
 freechains host stop --host=localhost:8401
@@ -39,6 +43,7 @@ fi
 set +e
 
 ###############################################################################
+echo "#### 3"
 
 while :
 do
@@ -67,6 +72,7 @@ done
 
 ###############################################################################
 ###############################################################################
+echo "#### 4"
 
 for i in $(seq 1 50)
 do
@@ -78,6 +84,7 @@ freechains --host=localhost:8400 chain send /0 localhost:8402 &
 P2=$!
 wait $P1 $P2
 
+echo "#### XXXX"
 set -e
 diff /tmp/freechains/8400/chains/0/ /tmp/freechains/8401/chains/0/
 diff /tmp/freechains/8401/chains/0/ /tmp/freechains/8402/chains/0/
@@ -89,6 +96,7 @@ fi
 set +e
 
 ###############################################################################
+echo "#### 5"
 
 for i in $(seq 8411 8450)
 do
@@ -133,7 +141,7 @@ set +e
 
 ###############################################################################
 
-done
+#done
 
 echo
 echo "=== ALL TESTS PASSED ==="

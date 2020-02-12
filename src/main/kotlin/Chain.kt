@@ -53,9 +53,11 @@ fun Chain.reheads (node: Node) {
     for (back in node.backs) {
         this.heads.remove(back)
         val old = this.loadNodeFromHash(back)
-        val new = Node(old.time,old.nonce,old.payload,old.backs,old.fronts+node.hash!!)
-        new.hash = old.hash!!
-        this.saveNode(new)
+        if (!old.fronts.contains((node.hash!!))) {
+            val new = Node(old.time, old.nonce, old.payload, old.backs, old.fronts + node.hash!!)
+            new.hash = old.hash!!
+            this.saveNode(new)
+        }
     }
 }
 
