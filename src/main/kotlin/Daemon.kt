@@ -41,12 +41,27 @@ fun handle (server: ServerSocket, remote: Socket, local: Host) {
             writer.writeUTF(chain.hash)
             System.err.println("chain create: $path")
         }
-        "FC chain get" -> {
+        "FC chain genesis" -> {
             val path  = reader.readLineX().pathCheck()
-            val hash_ = reader.readLineX()
+            val chain = local.loadChain(path)
+            val hash  = chain.toGenHash()
+            writer.writeLineX(hash)
+            System.err.println("chain get: $hash")
+        }
+        "FC chain heads" -> {
+            val path  = reader.readLineX().pathCheck()
+            val chain = local.loadChain(path)
+            for (head in chain.heads) {
+                writer.writeLineX(head)
+            }
+            writer.writeLineX("")
+            System.err.println("chain get: ${chain.heads}")
+        }
+        "FC chain get" -> {
+            val path = reader.readLineX().pathCheck()
+            val hash = reader.readLineX()
 
             val chain = local.loadChain(path)
-            val hash  = if (hash_ == "") chain.toGenHash() else hash_
             val node  = chain.loadNodeFromHash(hash)
             val json  = node.toJson()
 

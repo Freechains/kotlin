@@ -16,7 +16,7 @@ import org.freechains.kotlin.*
  *  - testes antigos
  *  - crypto (chain e host)
  *  - chain locks
- *  - freechains chain listen
+ *  - freechains chain remove
  *  - freechains host configure (json)
  *    - peer/chain configurations in host
  *  - freechains host restart
@@ -173,15 +173,23 @@ class Tests {
 
     @Test
     fun m1_args () {
-        //a_reset()
+        a_reset()
         main(arrayOf("host","create","tests/M1/"))
         thread {
             main(arrayOf("host","start","tests/M1/"))
         }
         Thread.sleep(100)
         main(arrayOf("chain","create","/xxx/0"))
+
+        main(arrayOf("chain","genesis","/xxx/0"))
+        main(arrayOf("chain","heads","/xxx/0"))
+
         main(arrayOf("chain","put","/xxx/0","text","aaa"))
         main(arrayOf("chain","put","/xxx/0","file","tests/M1/host"))
+
+        main(arrayOf("chain","genesis","/xxx/0"))
+        main(arrayOf("chain","heads","/xxx/0"))
+
         main(arrayOf("chain","get","--host=localhost:8330","/xxx/0", "0_826ffb4505831e6355edc141f49b1ccf5b489b9f03760f0f2fed4eeed419c6fe"))
         main(arrayOf("chain","get","/xxx/0", "0_826ffb4505831e6355edc141f49b1ccf5b489b9f03760f0f2fed4eeed419c6fe"))
         main(arrayOf("host","stop"))

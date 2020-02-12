@@ -14,12 +14,12 @@ Usage:
     freechains host start <dir>
     freechains [options] host stop
     freechains [options] chain create <chain/work>
+    freechains [options] chain genesis <chain/work>
+    freechains [options] chain heads <chain/work>
     freechains [options] chain get <chain/work> <height_hash>
     freechains [options] chain put <chain/work> (file | text | -) [<path_or_text>]
     freechains [options] chain send <chain/work> <host:port>
-    freechains [options] chain index <chain/work> <n>
     freechains [options] chain listen <chain/work>
-    freechains [options] chain remove <chain/work> <block-hash>
 
 Options:
     --host=<addr:port>          address and port to connect [default: localhost:8330]
@@ -78,6 +78,23 @@ fun main (args: Array<String>) {
                     writer.writeLineX("FC chain create")
                     writer.writeLineX(opts["<chain/work>"] as String)
                     println(reader.readUTF())
+                }
+                opts["genesis"] as Boolean -> {
+                    writer.writeLineX("FC chain genesis")
+                    writer.writeLineX(opts["<chain/work>"] as String)
+                    println(reader.readLineX())
+                }
+                opts["heads"] as Boolean -> {
+                    writer.writeLineX("FC chain heads")
+                    writer.writeLineX(opts["<chain/work>"] as String)
+                    while (true) {
+                        val hash = reader.readLineX()
+                        if (hash == "") {
+                            break
+                        } else {
+                            println(hash)
+                        }
+                    }
                 }
                 opts["get"] as Boolean -> {
                     writer.writeLineX("FC chain get")
