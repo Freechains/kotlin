@@ -16,7 +16,7 @@ data class Chain (
     val work : Byte
 ) {
     val hash  : String = this.toHash()
-    val heads : ArrayList<String> = arrayListOf(this.toGenHash())
+    val heads : ArrayList<Hash> = arrayListOf(this.toGenHash())
 }
 
 // JSON
@@ -63,7 +63,7 @@ fun Chain.reheads (node: Node) {
 
 // GENESIS
 
-fun Chain.toGenHash () : String {
+fun Chain.toGenHash () : Hash {
     return "0_" + this.toHash()
 }
 
@@ -119,11 +119,11 @@ fun Chain.saveNode (node: Node) {
     File(this.root + "/chains/" + this.toPath() + "/" + node.hash!! + ".node").writeText(node.toJson()+"\n")
 }
 
-fun Chain.loadNodeFromHash (hash: String): Node {
+fun Chain.loadNodeFromHash (hash: Hash): Node {
     return File(this.root + "/chains/" + this.toPath() + "/" + hash + ".node").readText().jsonToNode()
 }
 
-fun Chain.containsNode (hash: String) : Boolean {
+fun Chain.containsNode (hash: Hash) : Boolean {
     if (this.hash == hash) {
         return true
     } else {

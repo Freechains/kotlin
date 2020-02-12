@@ -6,16 +6,18 @@ import kotlinx.serialization.json.JsonConfiguration
 import java.security.MessageDigest
 import kotlin.math.max
 
+typealias Hash = String
+
 @Serializable
 data class Node (
     val time    : Long,             // TODO: ULong
     var nonce   : Long,             // TODO: ULong
     val payload : String,
-    val backs   : Array<String>,
-    val fronts  : Array<String> = arrayOf()
+    val backs   : Array<Hash>,
+    val fronts  : Array<Hash> = arrayOf()
 ) {
-    val height  : Int = if (this.backs.isEmpty()) 0 else this.backs.fold(0, { cur,hash -> max(cur,hash.hashToHeight()) }) + 1
-    var hash    : String? = null
+    val height  : Int = if (this.backs.isEmpty()) 0 else this.backs.fold(0, { cur,hash -> max(cur,hash.toHeight()) }) + 1
+    var hash    : Hash? = null
 }
 
 // JSON
@@ -34,12 +36,12 @@ fun String.jsonToNode (): Node {
 
 // HH
 
-private fun String.hashToHeight () : Int {
+private fun Hash.toHeight () : Int {
     val (height,_) = this.split("_")
     return height.toInt()
 }
 
-fun String.hashToHash () : String {
+fun Hash.toHash () : String {
     val (_,hash) = this.split("_")
     return hash
 }
@@ -97,7 +99,7 @@ private fun Node.toByteArray (): ByteArray {
         off += 1
     }
     for (hash in this.backs) {
-        for (v in hash.hashToHash()) {
+        for (v in hash.toHash()) {
             bytes.set(off, v.toByte())
             off += 1
         }

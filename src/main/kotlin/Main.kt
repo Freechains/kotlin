@@ -82,7 +82,7 @@ fun main (args: Array<String>) {
                 opts["get"] as Boolean -> {
                     writer.writeLineX("FC chain get")
                     writer.writeLineX(opts["<chain/work>"] as String)
-                    writer.writeLineX(opts["<height_hash>"] as String)
+                    writer.writeLineX(opts["<height_hash>"] as Hash)
                     when (reader.readLineX()) {
                         "0" -> {
                             System.err.println("chain get: not found"); -1

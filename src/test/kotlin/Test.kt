@@ -13,7 +13,6 @@ import org.freechains.kotlin.*
  *  TODO:
  *  - 948 -> 852 -> 841 LOC
  *  - typedef Hash
- *  - uplinks, new algo send/recv
  *  - android
  *  - testes antigos
  *  - crypto (chain e host)

@@ -110,7 +110,7 @@ for i in $(seq 8411 8420)
 do
   freechains --host=localhost:8400 chain send /0 localhost:$i &
 done
-sleep 5
+sleep 10
 
 set -e
 for i in $(seq 8411 8420)
@@ -123,13 +123,13 @@ for i in $(seq 8411 8420)
 do
   freechains --host=localhost:$i chain send /0 localhost:$(($i+10)) &
 done
-sleep 5
+sleep 10
 for i in $(seq 8421 8430)
 do
   freechains --host=localhost:$i chain send /0 localhost:$(($i+10)) &
   freechains --host=localhost:$i chain send /0 localhost:$(($i+20)) &
 done
-sleep 5
+sleep 10
 
 set -e
 for i in $(seq 8421 8450)

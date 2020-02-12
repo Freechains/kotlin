@@ -95,8 +95,8 @@ fun Socket.chain_send (chain: Chain) : Int {
     writer.writeLineX("FC chain recv")
     writer.writeLineX(chain.toPath())
 
-    val toSend = mutableSetOf<String>()
-    fun traverse (hash: String) {
+    val toSend = mutableSetOf<Hash>()
+    fun traverse (hash: Hash) {
         if (toSend.contains(hash)) {
             return
         } else {
