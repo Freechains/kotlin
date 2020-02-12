@@ -5,7 +5,7 @@ while : ; do
 rm -Rf /tmp/freechains/
 
 freechains host create /tmp/freechains/8400 8400
-sed -i 's/"timestamp": true/"timestamp": false/g' /tmp/freechains/8400/host
+jq ".timestamp=false" /tmp/freechains/8400/host > /tmp/host.tmp && mv /tmp/host.tmp /tmp/freechains/8400/host
 freechains host stop --host=localhost:8400
 freechains host start /tmp/freechains/8400 &
 sleep 0.5

@@ -12,10 +12,15 @@ import org.freechains.kotlin.*
 /*
  *  TODO:
  *  - 948 -> 852 -> 841 LOC
- *  - testes antigos
- *  - chain locks
- *  - peer/chain configurations in host
+ *  - uplinks, new algo send/recv
  *  - android
+ *  - testes antigos
+ *  - crypto (chain e host)
+ *  - chain locks
+ *  - freechains chain listen
+ *  - freechains host configure (json)
+ *    - peer/chain configurations in host
+ *  - freechains host restart
  */
 
 @TestMethodOrder(Alphanumeric::class)
@@ -109,6 +114,9 @@ class Tests {
     fun e1_graph () {
         val chain = Chain("tests/local/", "/graph",0)
         chain.save()
+        val genesis = Node(0,0, "", emptyArray())
+        genesis.hash = chain.toGenHash()
+        chain.saveNode(genesis)
 
         val a1 = Node(0,0,"a1", arrayOf(chain.toGenHash()))
         val b1 = Node(0,0,"b1", arrayOf(chain.toGenHash()))

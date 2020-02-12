@@ -52,6 +52,10 @@ fun Chain.reheads (node: Node) {
     this.heads.add(node.hash!!)
     for (back in node.backs) {
         this.heads.remove(back)
+        val old = this.loadNodeFromHash(back)
+        val new = Node(old.time,old.nonce,old.payload,old.backs,old.fronts+node.hash!!)
+        new.hash = old.hash!!
+        this.saveNode(new)
     }
 }
 
@@ -110,7 +114,7 @@ fun Chain.save () {
 // NDOE
 
 fun Chain.saveNode (node: Node) {
-    File(this.root + "/chains/" + this.toPath() + "/" + node.hash + ".node").writeText(node.toJson()+"\n")
+    File(this.root + "/chains/" + this.toPath() + "/" + node.hash!! + ".node").writeText(node.toJson()+"\n")
 }
 
 fun Chain.loadNodeFromHash (hash: String): Node {

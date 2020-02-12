@@ -11,7 +11,8 @@ data class Node (
     val time    : Long,             // TODO: ULong
     var nonce   : Long,             // TODO: ULong
     val payload : String,
-    val backs   : Array<String>
+    val backs   : Array<String>,
+    val fronts  : Array<String> = arrayOf()
 ) {
     val height  : Int = if (this.backs.isEmpty()) 0 else this.backs.fold(0, { cur,hash -> max(cur,hash.hashToHeight()) }) + 1
     var hash    : String? = null
