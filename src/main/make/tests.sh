@@ -84,7 +84,6 @@ freechains --host=localhost:8400 chain send /0 localhost:8402 &
 P2=$!
 wait $P1 $P2
 
-echo "#### XXXX"
 set -e
 diff /tmp/freechains/8400/chains/0/ /tmp/freechains/8401/chains/0/
 diff /tmp/freechains/8401/chains/0/ /tmp/freechains/8402/chains/0/

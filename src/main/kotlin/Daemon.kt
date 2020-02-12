@@ -122,7 +122,8 @@ fun Socket.chain_send (chain: Chain) : Int {
     }
 
     writer.writeLineX(toSend.size.toString())
-    for (hash in toSend.toSortedSet()) {
+    val sorted = toSend.toSortedSet(compareBy({it.length},{it}))
+    for (hash in sorted) {
         val node = chain.loadNodeFromHash(hash)
         val new = Node(node.time,node.nonce,node.payload,node.backs, emptyArray())
         new.hash = node.hash!!
