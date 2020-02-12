@@ -182,7 +182,6 @@ class Tests {
         main(arrayOf("chain","create","/xxx/0"))
         main(arrayOf("chain","put","/xxx/0","text","aaa"))
         main(arrayOf("chain","put","/xxx/0","file","tests/M1/host"))
-        main(arrayOf("chain","get","/xxx/0"))
         main(arrayOf("chain","get","--host=localhost:8330","/xxx/0", "0_826ffb4505831e6355edc141f49b1ccf5b489b9f03760f0f2fed4eeed419c6fe"))
         main(arrayOf("chain","get","/xxx/0", "0_826ffb4505831e6355edc141f49b1ccf5b489b9f03760f0f2fed4eeed419c6fe"))
         main(arrayOf("host","stop"))
