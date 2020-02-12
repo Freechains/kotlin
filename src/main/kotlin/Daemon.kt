@@ -42,10 +42,11 @@ fun handle (server: ServerSocket, remote: Socket, local: Host) {
             System.err.println("chain create: $path")
         }
         "FC chain get" -> {
-            val path = reader.readLineX().pathCheck()
-            val hash = reader.readLineX()
+            val path  = reader.readLineX().pathCheck()
+            val hash_ = reader.readLineX()
 
             val chain = local.loadChain(path)
+            val hash  = if (hash_ == "") chain.toGenHash() else hash_
             val node  = chain.loadNodeFromHash(hash)
             val json  = node.toJson()
 

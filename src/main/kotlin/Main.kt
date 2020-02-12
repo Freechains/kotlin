@@ -14,7 +14,7 @@ Usage:
     freechains host start <dir>
     freechains [options] host stop
     freechains [options] chain create <chain/work>
-    freechains [options] chain get <chain/work> <height_hash>
+    freechains [options] chain get <chain/work> [<height_hash>]
     freechains [options] chain put <chain/work> (file | text | -) [<path_or_text>]
     freechains [options] chain send <chain/work> <host:port>
     freechains [options] chain index <chain/work> <n>
@@ -82,7 +82,7 @@ fun main (args: Array<String>) {
                 opts["get"] as Boolean -> {
                     writer.writeLineX("FC chain get")
                     writer.writeLineX(opts["<chain/work>"] as String)
-                    writer.writeLineX(opts["<height_hash>"] as Hash)
+                    writer.writeLineX((opts["<height_hash>"] as Hash?) ?: "")
                     when (reader.readLineX()) {
                         "0" -> {
                             System.err.println("chain get: not found"); -1
