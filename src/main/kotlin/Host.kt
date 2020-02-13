@@ -32,7 +32,7 @@ fun String.fromJsonToHost () : Host {
 fun Host.createChain (path: String) : Chain {
     val (name,work) = path.pathToChainNW()
     val chain = Chain(this.path,name,work)
-    val file = File(this.path + "/chains/" + chain.toPath() + ".chain")
+    val file = File(getRoot(),this.path + "/chains/" + chain.toPath() + ".chain")
     assert(!file.exists()) { "chain already exists: $chain"}
     chain.save()
     val genesis = Node(0,0, "", emptyArray())
@@ -42,26 +42,32 @@ fun Host.createChain (path: String) : Chain {
 }
 
 fun Host.loadChain (path: String) : Chain {
-    val file = File(this.path + "/chains" + path + ".chain")
+    val file = File(getRoot(),this.path + "/chains" + path + ".chain")
     return file.readText().fromJsonToChain()
 }
 
 // FILE SYSTEM
 
 fun Host.save () {
-    File(this.path + "/host").writeText(this.toJson()+"\n")
+    File(getRoot(),this.path + "/host").writeText(this.toJson()+"\n")
 }
 
 fun Host_load (dir: String) : Host {
-    return File(dir + "/host").readText().fromJsonToHost()
+    assert(dir.substring(0,1) == "/")
+    return File(getRoot(),dir + "/host").readText().fromJsonToHost()
+}
+
+fun Host_exists (dir: String) : Boolean {
+    assert(dir.substring(0,1) == "/")
+    return File(getRoot(),dir).exists()
 }
 
 fun Host_create (dir: String, port: Int = 8330) : Host {
-    val full = if (dir.substring(0,1) == "/") dir else System.getProperty("user.dir")+"/"+dir
-    val fs = File(full)
+    assert(dir.substring(0,1) == "/")
+    val fs = File(getRoot(),dir)
     assert(!fs.exists()) { "directory already exists" }
     fs.mkdirs()
-    val host = Host(full, port)
+    val host = Host(dir, port)
     host.save()
     return host
 }

@@ -6,6 +6,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 import java.io.File
 import java.time.Instant
+//import org.freechains.platform.getParent
 
 typealias Chain_NW = Pair<String,Byte>
 
@@ -106,11 +107,11 @@ private fun Chain.toByteArray () : ByteArray {
 // FILE SYSTEM
 
 fun Chain.save () {
-    val dir = File(this.root + "/chains/" + this.toPath())
+    val dir = File(getRoot(),this.root + "/chains/" + this.toPath())
     if (!dir.exists()) {
         dir.mkdirs()
     }
-    File(this.root + "/chains/" + this.toPath() + ".chain").writeText(this.toJson())
+    File(getRoot(),this.root + "/chains/" + this.toPath() + ".chain").writeText(this.toJson())
 }
 
 // NDOE

@@ -12,21 +12,24 @@ import org.freechains.kotlin.*
 /*
  *  TODO:
  *  - 948 -> 852 -> 841 LOC
+ *  - chain locks
  *  - android
  *  - testes antigos
  *  - crypto (chain e host)
- *  - chain locks
  *  - freechains chain remove
  *  - freechains host configure (json)
  *    - peer/chain configurations in host
- *  - freechains host restart
+ *    - freechains host restart
+ *  - Xfreechains (lucas)
+ *    - chain xtraverse
+ *    - chain xlisten
  */
 
 @TestMethodOrder(Alphanumeric::class)
 class Tests {
     @Test
     fun a_reset () {
-        assert( File("tests/").deleteRecursively() )
+        assert( File("/tmp/freechains/tests/").deleteRecursively() )
     }
 
     @Test
@@ -38,8 +41,8 @@ class Tests {
 
     @Test
     fun b1_chain () {
-        val host1 = Host_create("tests/local/")
-        val chain1 = Chain("tests/local/", "/uerj", 0)
+        val host1 = Host_create("/tmp/freechains/tests/local/")
+        val chain1 = Chain("/tmp/freechains/tests/local/", "/uerj", 0)
         //println("Chain /uerj/0: ${chain1.toHash()}")
         chain1.save()
         val chain2 = host1.loadChain(chain1.toPath())
@@ -48,7 +51,7 @@ class Tests {
 
     @Test
     fun b2_node () {
-        val chain = Chain("tests/local/", "/uerj",0)
+        val chain = Chain("/tmp/freechains/tests/local/", "/uerj",0)
         val node = Node(0,0,"111", arrayOf(chain.toGenHash()))
         node.setNonceHashWithWork(0)
         chain.saveNode(node)
@@ -58,7 +61,7 @@ class Tests {
 
     @Test
     fun c1_publish () {
-        val host = Host_load("tests/local/")
+        val host = Host_load("/tmp/freechains/tests/local/")
         val chain = host.createChain("/ceu/10")
         val n1 = chain.publish("aaa", 0)
         val n2 = chain.publish("bbb", 1)
@@ -74,7 +77,7 @@ class Tests {
 
     @Test
     fun d2_proto () {
-        val local = Host_load("tests/local/")
+        val local = Host_load("/tmp/freechains/tests/local/")
         thread { daemon(local) }
         Thread.sleep(100)
 
@@ -86,14 +89,14 @@ class Tests {
         a_reset()
 
         // SOURCE
-        val src = Host_create("tests/src/")
+        val src = Host_create("/tmp/freechains/tests/src/")
         val src_chain = src.createChain("/d3/5")
         src_chain.publish("aaa", 0)
         src_chain.publish("bbb", 0)
         thread { daemon(src) }
 
         // DESTINY
-        val dst = Host_create("tests/dst/", 8331)
+        val dst = Host_create("/tmp/freechains/tests/dst/", 8331)
         dst.createChain("/d3/5")
         thread { daemon(dst) }
         Thread.sleep(100)
@@ -111,7 +114,7 @@ class Tests {
 
     @Test
     fun e1_graph () {
-        val chain = Chain("tests/local/", "/graph",0)
+        val chain = Chain("/tmp/freechains/tests/local/", "/graph",0)
         chain.save()
         val genesis = Node(0,0, "", emptyArray())
         genesis.hash = chain.toGenHash()
@@ -147,12 +150,12 @@ class Tests {
     fun f1_peers () {
         //a_reset()
 
-        val h1 = Host_create("tests/h1/", 8330)
+        val h1 = Host_create("/tmp/freechains/tests/h1/", 8330)
         val h1_chain = h1.createChain("/xxx/0")
         h1_chain.publish("h1_1", 0)
         h1_chain.publish("h1_2", 0)
 
-        val h2 = Host_create("tests/h2/", 8331)
+        val h2 = Host_create("/tmp/freechains/tests/h2/", 8331)
         val h2_chain = h2.createChain("/xxx/0")
         h2_chain.publish("h2_1", 0)
         h2_chain.publish("h2_2", 0)
@@ -173,10 +176,10 @@ class Tests {
 
     @Test
     fun m1_args () {
-        a_reset()
-        main(arrayOf("host","create","tests/M1/"))
+        //a_reset()
+        main(arrayOf("host","create","/tmp/freechains/tests/M1/"))
         thread {
-            main(arrayOf("host","start","tests/M1/"))
+            main(arrayOf("host","start","/tmp/freechains/tests/M1/"))
         }
         Thread.sleep(100)
         main(arrayOf("chain","create","/xxx/0"))
@@ -185,7 +188,7 @@ class Tests {
         main(arrayOf("chain","heads","/xxx/0"))
 
         main(arrayOf("chain","put","/xxx/0","text","aaa"))
-        main(arrayOf("chain","put","/xxx/0","file","tests/M1/host"))
+        main(arrayOf("chain","put","/xxx/0","file","/tmp/freechains/tests/M1/host"))
 
         main(arrayOf("chain","genesis","/xxx/0"))
         main(arrayOf("chain","heads","/xxx/0"))

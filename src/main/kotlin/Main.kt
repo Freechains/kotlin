@@ -114,7 +114,7 @@ fun main (args: Array<String>) {
                     writer.writeLineX(opts["<chain/work>"] as String)
                     val payload = when {
                         opts["text"] as Boolean -> opts["<path_or_text>"] as String
-                        opts["file"] as Boolean -> File(opts["<path_or_text>"] as String).readBytes().toString(Charsets.UTF_8)
+                        opts["file"] as Boolean -> File(getRoot(), opts["<path_or_text>"] as String).readBytes().toString(Charsets.UTF_8)
                         else -> error("TODO -")
                     }
                     writer.writeUTF(payload)
